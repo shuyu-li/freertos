@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -150,6 +150,9 @@
 #include "EventGroupsDemo.h"
 #include "TaskNotify.h"
 #include "IntSemTest.h"
+#include "StaticAllocation.h"
+#include "AbortDelay.h"
+
 
 /* Priorities for the demo application tasks. */
 #define mainSEM_TEST_PRIORITY				( tskIDLE_PRIORITY + 1UL )
@@ -230,7 +233,7 @@ static void prvPseudoRandomiser( void *pvParameters );
 
 /* The following two variables are used to communicate the status of the
 register check tasks to the check task.  If the variables keep incrementing,
-then the register check tasks has not discovered any errors.  If a variable
+then the register check tasks have not discovered any errors.  If a variable
 stops incrementing, then an error has been found. */
 volatile unsigned long ulRegTest1LoopCounter = 0UL, ulRegTest2LoopCounter = 0UL;
 
@@ -241,7 +244,7 @@ char *pcStatusMessage = "All tasks running without error";
 
 void main_full( void )
 {
-	/* Start all the other standard demo/test tasks.  They have not particular
+	/* Start all the other standard demo/test tasks.  They have no particular
 	functionality, but do demonstrate how to use the FreeRTOS API and test the
 	kernel port. */
 	vStartInterruptQueueTasks();
@@ -258,7 +261,8 @@ void main_full( void )
 	vStartEventGroupTasks();
 	vStartTaskNotifyTask();
 	vStartInterruptSemaphoreTasks();
-
+	vStartStaticallyAllocatedTasks();
+	vCreateAbortDelayTasks();
 
 	/* Start the tasks that implements the command console on the UART, as
 	described above. */
@@ -400,17 +404,27 @@ unsigned long ulErrorFound = pdFALSE;
 			ulErrorFound |= 1UL << 14UL;
 		}
 
+		if( xAreStaticAllocationTasksStillRunning() != pdPASS )
+		{
+			ulErrorFound |= 1UL << 15UL;
+		}
+
+		if( xAreAbortDelayTestTasksStillRunning() != pdPASS )
+		{
+			ulErrorFound |= 1UL << 16UL;
+		}
+
 		/* Check that the register test 1 task is still running. */
 		if( ulLastRegTest1Value == ulRegTest1LoopCounter )
 		{
-			ulErrorFound |= 1UL << 15UL;
+			ulErrorFound |= 1UL << 17UL;
 		}
 		ulLastRegTest1Value = ulRegTest1LoopCounter;
 
 		/* Check that the register test 2 task is still running. */
 		if( ulLastRegTest2Value == ulRegTest2LoopCounter )
 		{
-			ulErrorFound |= 1UL << 16UL;
+			ulErrorFound |= 1UL << 18UL;
 		}
 		ulLastRegTest2Value = ulRegTest2LoopCounter;
 

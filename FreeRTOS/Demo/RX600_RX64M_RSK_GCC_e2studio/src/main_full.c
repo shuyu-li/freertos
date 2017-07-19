@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -149,21 +149,21 @@
 /* The priority used by the UART command console task. */
 #define mainUART_COMMAND_CONSOLE_TASK_PRIORITY	( configMAX_PRIORITIES - 2 )
 
-/* The LED used by the check timer. */
+/* The LED used by the check task. */
 #define mainCHECK_LED						( 3 )
 
 /* A block time of zero simply means "don't block". */
 #define mainDONT_BLOCK						( 0UL )
 
-/* The period after which the check timer will expire, in ms, provided no errors
-have been reported by any of the standard demo tasks.  ms are converted to the
-equivalent in ticks using the portTICK_PERIOD_MS constant. */
-#define mainNO_ERROR_CHECK_TASK_PERIOD		( 3000UL / portTICK_PERIOD_MS )
+/* The period of the check task, in ms, provided no errors have been reported by
+any of the standard demo tasks.  ms are converted to the equivalent in ticks
+using the pdMS_TO_TICKS() macro constant. */
+#define mainNO_ERROR_CHECK_TASK_PERIOD		pdMS_TO_TICKS( 3000UL )
 
-/* The period at which the check timer will expire, in ms, if an error has been
-reported in one of the standard demo tasks.  ms are converted to the equivalent
-in ticks using the portTICK_PERIOD_MS constant. */
-#define mainERROR_CHECK_TASK_PERIOD 		( 200UL / portTICK_PERIOD_MS )
+/* The period of the check task, in ms, if an error has been reported in one of
+the standard demo tasks.  ms are converted to the equivalent in ticks using the
+pdMS_TO_TICKS() macro. */
+#define mainERROR_CHECK_TASK_PERIOD 		pdMS_TO_TICKS( 200UL )
 
 /* Parameters that are passed into the register check tasks solely for the
 purpose of ensuring parameters are passed into tasks correctly. */
@@ -220,7 +220,7 @@ static void prvPseudoRandomiser( void *pvParameters );
 
 /* The following two variables are used to communicate the status of the
 register check tasks to the check task.  If the variables keep incrementing,
-then the register check tasks has not discovered any errors.  If a variable
+then the register check tasks have not discovered any errors.  If a variable
 stops incrementing, then an error has been found. */
 volatile uint32_t ulRegTest1LoopCounter = 0UL, ulRegTest2LoopCounter = 0UL;
 
@@ -228,7 +228,7 @@ volatile uint32_t ulRegTest1LoopCounter = 0UL, ulRegTest2LoopCounter = 0UL;
 
 void main_full( void )
 {
-	/* Start all the other standard demo/test tasks.  They have not particular
+	/* Start all the other standard demo/test tasks.  They have no particular
 	functionality, but do demonstrate how to use the FreeRTOS API and test the
 	kernel port. */
 	vStartInterruptQueueTasks();
@@ -266,12 +266,10 @@ void main_full( void )
 
 	/* If all is well, the scheduler will now be running, and the following
 	line will never be reached.  If the following line does execute, then
-	there was either insufficient FreeRTOS heap memory available for the idle
-	and/or timer tasks to be created, or vTaskStartScheduler() was called from
-	User mode.  See the memory management section on the FreeRTOS web site for
-	more details on the FreeRTOS heap http://www.freertos.org/a00111.html.  The
-	mode from which main() is called is set in the C start up code and must be
-	a privileged mode (not user mode). */
+	there was insufficient FreeRTOS heap memory available for the Idle and/or
+	timer tasks to be created.  See the memory management section on the
+	FreeRTOS web site for more details on the FreeRTOS heap
+	http://www.freertos.org/a00111.html. */
 	for( ;; );
 }
 /*-----------------------------------------------------------*/
@@ -411,7 +409,7 @@ static void prvRegTestTaskEntry1( void *pvParameters )
 	}
 
 	/* The following line will only execute if the task parameter is found to
-	be incorrect.  The check timer will detect that the regtest loop counter is
+	be incorrect.  The check task will detect that the regtest loop counter is
 	not being incremented and flag an error. */
 	vTaskDelete( NULL );
 }
@@ -429,7 +427,7 @@ static void prvRegTestTaskEntry2( void *pvParameters )
 	}
 
 	/* The following line will only execute if the task parameter is found to
-	be incorrect.  The check timer will detect that the regtest loop counter is
+	be incorrect.  The check task will detect that the regtest loop counter is
 	not being incremented and flag an error. */
 	vTaskDelete( NULL );
 }

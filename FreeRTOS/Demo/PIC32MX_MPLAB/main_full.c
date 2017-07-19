@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -89,6 +89,9 @@
  * message to the LCD send the message on a queue to the LCD task instead of
  * accessing the LCD themselves.  The LCD task just blocks on the queue waiting
  * for messages - waking and displaying the messages as they arrive.
+ * **NOTE** The LCD driver has a dependency on the PLIB library, which is no
+ * longer provided by Microchip, so LCD functionality has been removed from this
+ * demo - however the source files remain in the distribution.
  *
  * "Check" timer - The check software timer period is initially set to three
  * seconds.  The callback function associated with the check software timer
@@ -115,6 +118,10 @@
  *
  *	+ The UART is allocated a priority of 2. This means it can interrupt the
  *    RTOS tick, and can also safely use queues.
+ *    **NOTE** The UART driver has a dependency on the PLIB library, which is no
+ *    longer provided by Microchip, so UART functionality has been removed from
+ *    this demo - however the source files remain in the distribution.
+ *
  *  + Two timers are configured to generate interrupts just to test the nesting
  *    and queue access mechanisms. These timers are allocated priorities 2 and 3
  *    respectively. Even though they both access the same two queues, the
@@ -147,7 +154,6 @@
 #include "GenQTest.h"
 #include "QPeek.h"
 #include "lcd.h"
-#include "comtest2.h"
 #include "timertest.h"
 #include "IntQueue.h"
 
@@ -169,13 +175,6 @@ in ticks using the portTICK_PERIOD_MS constant. */
 #define mainCOM_TEST_PRIORITY				( tskIDLE_PRIORITY + 2 )
 #define mainINTEGER_TASK_PRIORITY           ( tskIDLE_PRIORITY )
 #define mainGEN_QUEUE_TASK_PRIORITY			( tskIDLE_PRIORITY )
-
-/* The LED used by the comtest tasks.  mainCOM_TEST_LED + 1 is also used.
-See the comtest.c file for more information. */
-#define mainCOM_TEST_LED					( 4 )
-
-/* Baud rate used by the comtest tasks. */
-#define mainCOM_TEST_BAUD_RATE				( 115200 )
 
 /* Misc. */
 #define mainDONT_BLOCK						( 0 )
@@ -251,10 +250,6 @@ int main_full( void )
 {
 TimerHandle_t xTimer = NULL;
 
-	/* Create the LCD task - this returns the queue to use when writing
-	messages to the LCD. */
-	xLCDQueue = xStartLCDTask();
-
 	/* Create all the other standard demo tasks. */
 	vStartLEDFlashTimers( mainNUM_FLASH_TIMER_LEDS );
     vCreateBlockTimeTasks();
@@ -266,13 +261,6 @@ TimerHandle_t xTimer = NULL;
 	/* Create the tasks defined within this file. */
 	xTaskCreate( prvRegTestTask1, "Reg1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 	xTaskCreate( prvRegTestTask2, "Reg2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-
-    /* The PIC32MX795 uses an 8 deep fifo where TX interrupts are asserted
-	whilst the TX buffer is empty.  This causes an issue with the test driver so
-	it is not used in this demo */
-	#if !defined(__32MX795F512L__)
-		vAltStartComTestTasks( mainCOM_TEST_PRIORITY, mainCOM_TEST_BAUD_RATE, mainCOM_TEST_LED );
-	#endif
 
 	/* Create the software timer that performs the 'check' functionality, as
 	described at the top of this file. */
@@ -391,19 +379,12 @@ static xLCDMessage xMessage = { ( 200 / portTICK_PERIOD_MS ), cStringBuffer };
 	{
 		xMessage.pcMessage = "Error: Int queue";
 	}
-	#if !defined(__32MX795F512L__)
-		else if( xAreComTestTasksStillRunning() != pdTRUE )
-		{
-			xMessage.pcMessage = "Error: COM test";
-		}
-	#endif
 
 	if( xMessage.pcMessage != cStringBuffer )
 	{
 		/* An error string has been logged.  If the timer period has not yet
 		been changed it should be changed now.  Increasing the frequency of the
-		LED gives visual feedback of the error status (although it is written
-		to the LCD too!). */
+		LED gives visual feedback of the error status. */
 		if( lChangedTimerPeriodAlready == pdFALSE )
 		{
 			lChangedTimerPeriodAlready = pdTRUE;
@@ -422,9 +403,6 @@ static xLCDMessage xMessage = { ( 200 / portTICK_PERIOD_MS ), cStringBuffer };
 		sprintf( cStringBuffer, "Pass %u", ( unsigned int ) ulHighFrequencyTimerInterrupts );
 	}
 
-	/* Send the status message to the LCD task for display on the LCD.  This is
-	a timer callback function, so the queue send function *must not* block. */
-	xQueueSend( xLCDQueue, &xMessage, mainDONT_BLOCK );
 	vParTestToggleLED( mainCHECK_LED );
 }
 /*-----------------------------------------------------------*/

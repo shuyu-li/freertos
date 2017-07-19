@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -119,8 +119,8 @@
 #define configUSE_IDLE_HOOK						1
 #define configUSE_TICK_HOOK						1
 #define configMAX_PRIORITIES					( 7 )
-#define configMINIMAL_STACK_SIZE				( ( unsigned short ) 200 )
-#define configTOTAL_HEAP_SIZE					( 80 * 1024 )
+#define configMINIMAL_STACK_SIZE				( ( unsigned short ) 250 ) /* Large in case configUSE_TASK_FPU_SUPPORT is 2 in which case all tasks have an FPU context. */
+#define configTOTAL_HEAP_SIZE					( 90 * 1024 )
 #define configMAX_TASK_NAME_LEN					( 10 )
 #define configUSE_TRACE_FACILITY				1
 #define configUSE_16_BIT_TICKS					0
@@ -133,6 +133,10 @@
 #define configUSE_APPLICATION_TASK_TAG			0
 #define configUSE_COUNTING_SEMAPHORES			1
 #define configUSE_QUEUE_SETS					1
+#define configSUPPORT_STATIC_ALLOCATION			1
+
+/* Include the query-heap CLI command to query the free heap space. */
+#define configINCLUDE_QUERY_HEAP_COMMAND		1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 					0
@@ -143,6 +147,13 @@
 #define configTIMER_TASK_PRIORITY				( configMAX_PRIORITIES - 1 )
 #define configTIMER_QUEUE_LENGTH				5
 #define configTIMER_TASK_STACK_DEPTH			( configMINIMAL_STACK_SIZE * 2 )
+
+/* If configUSE_TASK_FPU_SUPPORT is set to 1 (or undefined) then each task will
+be created without an FPU context, and a task must call vTaskUsesFPU() before
+making use of any FPU registers.  If configUSE_TASK_FPU_SUPPORT is set to 2 then
+tasks are created with an FPU context by default, and calling vTaskUsesFPU() has
+no effect. */
+#define configUSE_TASK_FPU_SUPPORT				2
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
@@ -155,6 +166,9 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelay						1
 #define INCLUDE_xTimerPendFunctionCall			1
 #define INCLUDE_eTaskGetState					1
+#define INCLUDE_xTaskAbortDelay					1
+#define INCLUDE_xTaskGetTaskHandle				1
+#define INCLUDE_xTaskGetHandle					1
 
 /* This demo makes use of one or more example stats formatting functions.  These
 format the raw data provided by the uxTaskGetSystemState() function in to human

@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -123,9 +123,9 @@ be overridden by a definition in FreeRTOSConfig.h. */
 #define recmuMAX_COUNT					( 10 )
 
 /* Misc. */
-#define recmuSHORT_DELAY				( 20 / portTICK_PERIOD_MS )
+#define recmuSHORT_DELAY				( pdMS_TO_TICKS( 20 ) )
 #define recmuNO_DELAY					( ( TickType_t ) 0 )
-#define recmuEIGHT_TICK_DELAY			( ( TickType_t ) 8 )
+#define recmu15ms_DELAY					( pdMS_TO_TICKS( 15 ) )
 
 /* The three tasks as described at the top of this file. */
 static void prvRecursiveMutexControllingTask( void *pvParameters );
@@ -151,20 +151,19 @@ void vStartRecursiveMutexTasks( void )
 
 	xMutex = xSemaphoreCreateRecursiveMutex();
 
-	/* vQueueAddToRegistry() adds the mutex to the registry, if one is
-	in use.  The registry is provided as a means for kernel aware
-	debuggers to locate mutex and has no purpose if a kernel aware debugger
-	is not being used.  The call to vQueueAddToRegistry() will be removed
-	by the pre-processor if configQUEUE_REGISTRY_SIZE is not defined or is
-	defined to be less than 1. */
-	vQueueAddToRegistry( ( QueueHandle_t ) xMutex, "Recursive_Mutex" );
-
-
 	if( xMutex != NULL )
 	{
+		/* vQueueAddToRegistry() adds the mutex to the registry, if one is
+		in use.  The registry is provided as a means for kernel aware
+		debuggers to locate mutex and has no purpose if a kernel aware debugger
+		is not being used.  The call to vQueueAddToRegistry() will be removed
+		by the pre-processor if configQUEUE_REGISTRY_SIZE is not defined or is
+		defined to be less than 1. */
+		vQueueAddToRegistry( ( QueueHandle_t ) xMutex, "Recursive_Mutex" );
+
 		xTaskCreate( prvRecursiveMutexControllingTask, "Rec1", configMINIMAL_STACK_SIZE, NULL, recmuCONTROLLING_TASK_PRIORITY, &xControllingTaskHandle );
-        xTaskCreate( prvRecursiveMutexBlockingTask, "Rec2", configMINIMAL_STACK_SIZE, NULL, recmuBLOCKING_TASK_PRIORITY, &xBlockingTaskHandle );
-        xTaskCreate( prvRecursiveMutexPollingTask, "Rec3", configMINIMAL_STACK_SIZE, NULL, recmuPOLLING_TASK_PRIORITY, NULL );
+		xTaskCreate( prvRecursiveMutexBlockingTask, "Rec2", configMINIMAL_STACK_SIZE, NULL, recmuBLOCKING_TASK_PRIORITY, &xBlockingTaskHandle );
+		xTaskCreate( prvRecursiveMutexPollingTask, "Rec3", configMINIMAL_STACK_SIZE, NULL, recmuPOLLING_TASK_PRIORITY, NULL );
 	}
 }
 /*-----------------------------------------------------------*/
@@ -199,7 +198,7 @@ UBaseType_t ux;
 			long enough to ensure the polling task will execute again before the
 			block time expires.  If the block time does expire then the error
 			flag will be set here. */
-			if( xSemaphoreTakeRecursive( xMutex, recmuEIGHT_TICK_DELAY ) != pdPASS )
+			if( xSemaphoreTakeRecursive( xMutex, recmu15ms_DELAY ) != pdPASS )
 			{
 				xErrorOccurred = pdTRUE;
 			}
@@ -227,6 +226,10 @@ UBaseType_t ux;
 			{
 				xErrorOccurred = pdTRUE;
 			}
+
+			#if( configUSE_PREEMPTION == 0 )
+				taskYIELD();
+			#endif
 		}
 
 		/* Having given it back the same number of times as it was taken, we
@@ -344,7 +347,14 @@ static void prvRecursiveMutexPollingTask( void *pvParameters )
 				error will be latched if the polling task has not returned the
 				mutex by the time this fixed period has expired. */
 				vTaskResume( xBlockingTaskHandle );
-                vTaskResume( xControllingTaskHandle );
+				#if( configUSE_PREEMPTION == 0 )
+					taskYIELD();
+				#endif
+
+				vTaskResume( xControllingTaskHandle );
+				#if( configUSE_PREEMPTION == 0 )
+					taskYIELD();
+				#endif
 
 				/* The other two tasks should now have executed and no longer
 				be suspended. */
@@ -433,7 +443,7 @@ static UBaseType_t uxLastControllingCycles = 0, uxLastBlockingCycles = 0, uxLast
 	}
 	else
 	{
-		xReturn = pdTRUE;
+		xReturn = pdPASS;
 	}
 
 	return xReturn;

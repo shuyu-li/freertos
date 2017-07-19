@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -84,7 +84,7 @@
 #include "TaskNotify.h"
 
 #define notifyTASK_PRIORITY		( tskIDLE_PRIORITY )
-
+#define notifyUINT32_MAX	( ( uint32_t ) 0xffffffff )
 /*-----------------------------------------------------------*/
 
 /*
@@ -128,7 +128,7 @@ static uint32_t ulTimerNotificationsReceived = 0UL, ulTimerNotificationsSent = 0
 static TimerHandle_t xTimer = NULL;
 
 /* Used by the pseudo random number generating function. */
-static uint32_t ulNextRand = 0;
+static size_t uxNextRand = 0;
 
 /*-----------------------------------------------------------*/
 
@@ -139,7 +139,7 @@ void vStartTaskNotifyTask( void  )
 	xTaskCreate( prvNotifiedTask, "Notified", configMINIMAL_STACK_SIZE, NULL, notifyTASK_PRIORITY, &xTaskToNotify );
 
 	/* Pseudo seed the random number generator. */
-	ulNextRand = ( uint32_t ) prvRand;
+	uxNextRand = ( size_t ) prvRand;
 }
 /*-----------------------------------------------------------*/
 
@@ -147,7 +147,7 @@ static void prvSingleTaskTests( void )
 {
 const TickType_t xTicksToWait = pdMS_TO_TICKS( 100UL );
 BaseType_t xReturned;
-uint32_t ulNotifiedValue, ulLoop, ulNotifyingValue;
+uint32_t ulNotifiedValue, ulLoop, ulNotifyingValue, ulPreviousValue, ulExpectedValue;
 TickType_t xTimeOnEntering;
 const uint32_t ulFirstNotifiedConst = 100001UL, ulSecondNotifiedValueConst = 5555UL, ulMaxLoops = 5UL;
 const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
@@ -155,7 +155,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	/* -------------------------------------------------------------------------
 	Check blocking when there are no notifications. */
 	xTimeOnEntering = xTaskGetTickCount();
-	xReturned = xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, xTicksToWait );
+	xReturned = xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, xTicksToWait );
 
 	/* Should have blocked for the entire block time. */
 	if( ( xTaskGetTickCount() - xTimeOnEntering ) < xTicksToWait )
@@ -172,15 +172,18 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	Check no blocking when notifications are pending.  First notify itself -
 	this would not be a normal thing to do and is done here for test purposes
 	only. */
-	xReturned = xTaskNotify( xTaskToNotify, ulFirstNotifiedConst, eSetValueWithoutOverwrite );
+	xReturned = xTaskNotifyAndQuery( xTaskToNotify, ulFirstNotifiedConst, eSetValueWithoutOverwrite, &ulPreviousValue );
 
 	/* Even through the 'without overwrite' action was used the update should
 	have been successful. */
 	configASSERT( xReturned == pdPASS );
 
+	/* No bits should have been pending previously. */
+	configASSERT( ulPreviousValue == 0 );
+
 	/* The task should now have a notification pending, and so not time out. */
 	xTimeOnEntering = xTaskGetTickCount();
-	xReturned = xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, xTicksToWait );
+	xReturned = xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, xTicksToWait );
 
 	if( ( xTaskGetTickCount() - xTimeOnEntering ) >= xTicksToWait )
 	{
@@ -212,7 +215,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 
 	/* Waiting for the notification should now return immediately so a block
 	time of zero is used. */
-	xReturned = xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, 0 );
+	xReturned = xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, 0 );
 
 	configASSERT( xReturned == pdPASS );
 	configASSERT( ulNotifiedValue == ulFirstNotifiedConst );
@@ -230,7 +233,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	configASSERT( xReturned == pdPASS );
 	xReturned = xTaskNotify( xTaskToNotify, ulSecondNotifiedValueConst, eSetValueWithOverwrite );
 	configASSERT( xReturned == pdPASS );
-	xReturned = xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, 0 );
+	xReturned = xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, 0 );
 	configASSERT( xReturned == pdPASS );
 	configASSERT( ulNotifiedValue == ulSecondNotifiedValueConst );
 
@@ -243,7 +246,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	remain at ulSecondNotifiedConst. */
 	xReturned = xTaskNotify( xTaskToNotify, ulFirstNotifiedConst, eNoAction );
 	configASSERT( xReturned == pdPASS );
-	xReturned = xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, 0 );
+	xReturned = xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, 0 );
 	configASSERT( ulNotifiedValue == ulSecondNotifiedValueConst );
 
 
@@ -259,7 +262,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 		configASSERT( xReturned == pdPASS );
 	}
 
-	xReturned = xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, 0 );
+	xReturned = xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, 0 );
 	configASSERT( xReturned == pdPASS );
 	configASSERT( ulNotifiedValue == ( ulSecondNotifiedValueConst + ulMaxLoops ) );
 
@@ -279,7 +282,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	ulLoop = 0;
 
 	/* Start with all bits clear. */
-	xTaskNotifyWait( ULONG_MAX, 0, &ulNotifiedValue, 0 );
+	xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, 0 );
 
 	do
 	{
@@ -297,7 +300,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 		/* Use the next bit on the next iteration around this loop. */
 		ulNotifyingValue <<= 1UL;
 
-	} while ( ulNotifiedValue != ULONG_MAX );
+	} while ( ulNotifiedValue != notifyUINT32_MAX );
 
 	/* As a 32-bit value was used the loop should have executed 32 times before
 	all the bits were set. */
@@ -317,15 +320,15 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	configASSERT( xReturned == pdFAIL );
 
 	/* Notify the task with no action so as not to update the bits even though
-	ULONG_MAX is used as the notification value. */
-	xTaskNotify( xTaskToNotify, ULONG_MAX, eNoAction );
+	notifyUINT32_MAX is used as the notification value. */
+	xTaskNotify( xTaskToNotify, notifyUINT32_MAX, eNoAction );
 
 	/* Reading back the value should should find bit 0 is clear, as this was
 	cleared on entry, but bit 1 is not clear as it will not have been cleared on
 	exit as no notification was received. */
 	xReturned = xTaskNotifyWait( 0x00UL, 0x00UL, &ulNotifiedValue, 0 );
 	configASSERT( xReturned == pdPASS );
-	configASSERT( ulNotifiedValue == ( ULONG_MAX & ~ulBit0 ) );
+	configASSERT( ulNotifiedValue == ( notifyUINT32_MAX & ~ulBit0 ) );
 
 
 
@@ -340,14 +343,58 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	/* However as the bit is cleared on exit, after the returned notification
 	value is set, the returned notification value should not have the bit
 	cleared... */
-	configASSERT( ulNotifiedValue == ( ULONG_MAX & ~ulBit0 ) );
+	configASSERT( ulNotifiedValue == ( notifyUINT32_MAX & ~ulBit0 ) );
 
 	/* ...but reading the value back again should find that the bit was indeed
 	cleared internally.  The returned value should be pdFAIL however as nothing
 	has notified the task in the mean time. */
 	xReturned = xTaskNotifyWait( 0x00, 0x00, &ulNotifiedValue, 0 );
 	configASSERT( xReturned == pdFAIL );
-	configASSERT( ulNotifiedValue == ( ULONG_MAX & ~( ulBit0 | ulBit1 ) ) );
+	configASSERT( ulNotifiedValue == ( notifyUINT32_MAX & ~( ulBit0 | ulBit1 ) ) );
+
+
+
+
+	/*--------------------------------------------------------------------------
+	Now try querying the previus value while notifying a task. */
+	xTaskNotifyAndQuery( xTaskToNotify, 0x00, eSetBits, &ulPreviousValue );
+	configASSERT( ulNotifiedValue == ( notifyUINT32_MAX & ~( ulBit0 | ulBit1 ) ) );
+
+	/* Clear all bits. */
+	xTaskNotifyWait( 0x00, notifyUINT32_MAX, &ulNotifiedValue, 0 );
+	xTaskNotifyAndQuery( xTaskToNotify, 0x00, eSetBits, &ulPreviousValue );
+	configASSERT( ulPreviousValue == 0 );
+
+	ulExpectedValue = 0;
+	for( ulLoop = 0x01; ulLoop < 0x80UL; ulLoop <<= 1UL )
+	{
+		/* Set the next bit up, and expect to receive the last bits set (so
+		the previous value will not yet have the bit being set this time
+		around). */
+		xTaskNotifyAndQuery( xTaskToNotify, ulLoop, eSetBits, &ulPreviousValue );
+		configASSERT( ulExpectedValue == ulPreviousValue );
+		ulExpectedValue |= ulLoop;
+	}
+
+
+
+	/* -------------------------------------------------------------------------
+	Clear the previous notifications. */
+	xTaskNotifyWait( notifyUINT32_MAX, 0, &ulNotifiedValue, 0 );
+
+	/* The task should not have any notifications pending, so an attempt to clear
+	the notification state should fail. */
+	configASSERT( xTaskNotifyStateClear( NULL ) == pdFALSE );
+
+	/* Get the task to notify itself.  This is not a normal thing to do, and is
+	only done here for test purposes. */
+	xTaskNotifyAndQuery( xTaskToNotify, ulFirstNotifiedConst, eSetValueWithoutOverwrite, &ulPreviousValue );
+
+	/* Now the notification state should be eNotified, so it should now be
+	possible to clear the notification state. */
+	configASSERT( xTaskNotifyStateClear( NULL ) == pdTRUE );
+	configASSERT( xTaskNotifyStateClear( NULL ) == pdFALSE );
+
 
 
 
@@ -355,7 +402,7 @@ const uint32_t ulBit0 = 0x01UL, ulBit1 = 0x02UL;
 	ulNotifyCycleCount++;
 
 	/* Leave all bits cleared. */
-	xTaskNotifyWait( ULONG_MAX, 0, NULL, 0 );
+	xTaskNotifyWait( notifyUINT32_MAX, 0, NULL, 0 );
 }
 /*-----------------------------------------------------------*/
 
@@ -378,6 +425,7 @@ static void prvNotifiedTask( void *pvParameters )
 {
 const TickType_t xMaxPeriod = pdMS_TO_TICKS( 90 ), xMinPeriod = pdMS_TO_TICKS( 10 ), xDontBlock = 0;
 TickType_t xPeriod;
+const uint32_t ulCyclesToRaisePriority = 50UL;
 
 	/* Remove compiler warnings about unused parameters. */
 	( void ) pvParameters;
@@ -401,8 +449,8 @@ TickType_t xPeriod;
 			xPeriod = xMinPeriod;
 		}
 
+		/* Change the timer period and start the timer. */
 		xTimerChangePeriod( xTimer, xPeriod, portMAX_DELAY );
-		xTimerStart( xTimer, portMAX_DELAY );
 
 		/* Block waiting for the notification again with a different period.
 		Sometimes the period will be higher than the tasks block time, sometimes
@@ -435,9 +483,28 @@ TickType_t xPeriod;
 		the function call. */
 		ulTimerNotificationsReceived += ulTaskNotifyTake( pdTRUE, xPeriod );
 
-		/* Wait for the next notification again, clearing all notifications if
-		one is received, but this time blocking indefinitely. */
-		ulTimerNotificationsReceived += ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+		/* Occasionally raise the priority of the task being notified to test
+		the path where the task is notified from an ISR and becomes the highest
+		priority ready state task, but the pxHigherPriorityTaskWoken parameter
+		is NULL (which it is in the tick hook that sends notifications to this
+		task. */
+		if( ( ulNotifyCycleCount % ulCyclesToRaisePriority ) == 0 )
+		{
+			vTaskPrioritySet( xTaskToNotify, configMAX_PRIORITIES - 1 );
+
+			/* Wait for the next notification again, clearing all notifications if
+			one is received, but this time blocking indefinitely. */
+			ulTimerNotificationsReceived += ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+
+			/* Reset the priority. */
+			vTaskPrioritySet( xTaskToNotify, notifyTASK_PRIORITY );
+		}
+		else
+		{
+			/* Wait for the next notification again, clearing all notifications if
+			one is received, but this time blocking indefinitely. */
+			ulTimerNotificationsReceived += ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+		}
 
 		/* Incremented to show the task is still running. */
 		ulNotifyCycleCount++;
@@ -447,8 +514,10 @@ TickType_t xPeriod;
 
 void xNotifyTaskFromISR( void )
 {
-static BaseType_t xCallCount = 0;
+static BaseType_t xCallCount = 0, xAPIToUse = 0;
 const BaseType_t xCallInterval = pdMS_TO_TICKS( 50 );
+uint32_t ulPreviousValue;
+const uint32_t ulUnexpectedValue = 0xff;
 
 	/* The task performs some tests before starting the timer that gives the
 	notification from this interrupt.  If the timer has not been created yet
@@ -463,7 +532,28 @@ const BaseType_t xCallInterval = pdMS_TO_TICKS( 50 );
 			/* It is time to 'give' the notification again. */
 			xCallCount = 0;
 
-			vTaskNotifyGiveFromISR( xTaskToNotify, NULL );
+			/* Test using both vTaskNotifyGiveFromISR(), xTaskNotifyFromISR()
+			and xTaskNotifyAndQueryFromISR(). */
+			switch( xAPIToUse )
+			{
+				case 0:	vTaskNotifyGiveFromISR( xTaskToNotify, NULL );
+						xAPIToUse++;
+						break;
+
+				case 1:	xTaskNotifyFromISR( xTaskToNotify, 0, eIncrement, NULL );
+						xAPIToUse++;
+						break;
+
+				case 2: ulPreviousValue = ulUnexpectedValue;
+						xTaskNotifyAndQueryFromISR( xTaskToNotify, 0, eIncrement, &ulPreviousValue, NULL );
+						configASSERT( ulPreviousValue != ulUnexpectedValue );
+						xAPIToUse = 0;
+						break;
+
+				default:/* Should never get here!. */
+						break;
+			}
+
 			ulTimerNotificationsSent++;
 		}
 	}
@@ -490,7 +580,7 @@ const uint32_t ulMaxSendReceiveDeviation = 5UL;
 
 	/* Check the count of 'takes' from the software timer is keeping track with
 	the amount of 'gives'. */
-	if( ulTimerNotificationsSent > ulTimerNotificationsSent )
+	if( ulTimerNotificationsSent > ulTimerNotificationsReceived )
 	{
 		if( ( ulTimerNotificationsSent - ulTimerNotificationsReceived ) > ulMaxSendReceiveDeviation )
 		{
@@ -504,10 +594,10 @@ const uint32_t ulMaxSendReceiveDeviation = 5UL;
 
 static UBaseType_t prvRand( void )
 {
-const uint32_t ulMultiplier = 0x015a4e35UL, ulIncrement = 1UL;
+const size_t uxMultiplier = ( size_t ) 0x015a4e35, uxIncrement = ( size_t ) 1;
 
 	/* Utility function to generate a pseudo random number. */
-	ulNextRand = ( ulMultiplier * ulNextRand ) + ulIncrement;
-	return( ( int ) ( ulNextRand >> 16UL ) & 0x7fffUL );
+	uxNextRand = ( uxMultiplier * uxNextRand ) + uxIncrement;
+	return( ( uxNextRand >> 16 ) & ( ( size_t ) 0x7fff ) );
 }
 /*-----------------------------------------------------------*/

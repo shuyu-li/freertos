@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Tracealyzer v2.7.0 Recorder Library
+ * Tracealyzer v3.0.2 Recorder Library
  * Percepio AB, www.percepio.com
  *
  * trcUser.h
@@ -385,7 +385,7 @@ void vTraceUserEvent(traceLabel eventLabel);
  *
  * Calling xTraceOpenLabel multiple times will not create duplicate entries, but
  * it is of course faster to just do it once, and then keep the handle for later
- * use. If you don´t have any data arguments, only a text label/string, it is
+ * use. If you donï¿½t have any data arguments, only a text label/string, it is
  * better to use vTraceUserEvent - it is faster.
  *
  * Format specifiers supported:
@@ -448,7 +448,7 @@ void vTraceChannelUserEvent(UserEventChannel channel);
 
 #define vTraceSetISRProperties(handle, name, priority)
 #define vTraceStoreISRBegin(id)
-#define vTraceStoreISREnd()
+#define vTraceStoreISREnd(flag)
 #define vTraceExcludeTaskFromTrace(handle)
 #define vTraceSetQueueName(a, b)
 #define vTraceSetMutexName(a, b)

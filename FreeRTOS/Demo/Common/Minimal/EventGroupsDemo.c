@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -97,14 +97,14 @@
 #define ebWAIT_BIT_TASK_PRIORITY	( tskIDLE_PRIORITY + 1 )
 
 /* Generic bit definitions. */
-#define ebBIT_0		( 0x01UL )
-#define ebBIT_1		( 0x02UL )
-#define ebBIT_2		( 0x04UL )
-#define ebBIT_3		( 0x08UL )
-#define ebBIT_4		( 0x10UL )
-#define ebBIT_5		( 0x20UL )
-#define ebBIT_6		( 0x40UL )
-#define ebBIT_7		( 0x80UL )
+#define ebBIT_0		( 0x01 )
+#define ebBIT_1		( 0x02 )
+#define ebBIT_2		( 0x04 )
+#define ebBIT_3		( 0x08 )
+#define ebBIT_4		( 0x10 )
+#define ebBIT_5		( 0x20 )
+#define ebBIT_6		( 0x40 )
+#define ebBIT_7		( 0x80 )
 
 /* Combinations of bits used in the demo. */
 #define ebCOMBINED_BITS ( ebBIT_1 | ebBIT_5 | ebBIT_7 )
@@ -122,7 +122,7 @@ that synchronise with the xEventGroupSync() function. */
 #define ebDONT_BLOCK	( 0 )
 
 /* A 5ms delay. */
-#define ebSHORT_DELAY	( 5 / portTICK_PERIOD_MS )
+#define ebSHORT_DELAY	pdMS_TO_TICKS( ( TickType_t ) 5 )
 
 /* Used in the selective bits test which checks no, one or both tasks blocked on
 event bits in a group are unblocked as appropriate as different bits get set. */
@@ -1021,7 +1021,7 @@ BaseType_t xMessagePosted;
 	else if( xCallCount == xClearBitsCount )
 	{
 		/* Clear the bits again. */
-		uxReturned = xEventGroupClearBitsFromISR( xISREventGroup, uxBitsToSet );
+		uxReturned = ( EventBits_t ) xEventGroupClearBitsFromISR( xISREventGroup, uxBitsToSet );
 
 		/* Check the message was posted. */
 		if( uxReturned != pdPASS )

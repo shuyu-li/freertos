@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -70,8 +70,7 @@
 
  /******************************************************************************
  *
- * See the following URL for information on the commands defined in this file:
- * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/Embedded_Ethernet_Examples/Ethernet_Related_CLI_Commands.shtml
+ * http://www.FreeRTOS.org/cli
  *
  ******************************************************************************/
 
@@ -110,7 +109,9 @@ static BaseType_t prvTaskStatsCommand( char *pcWriteBuffer, size_t xWriteBufferL
 /*
  * Implements the run-time-stats command.
  */
-static BaseType_t prvRunTimeStatsCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
+#if( configGENERATE_RUN_TIME_STATS == 1 )
+	static BaseType_t prvRunTimeStatsCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
+#endif /* configGENERATE_RUN_TIME_STATS */
 
 /*
  * Implements the echo-three-parameters command.
@@ -135,16 +136,6 @@ static BaseType_t prvParameterEchoCommand( char *pcWriteBuffer, size_t xWriteBuf
 #if( configINCLUDE_TRACE_RELATED_CLI_COMMANDS == 1 )
 	static BaseType_t prvStartStopTraceCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString );
 #endif
-
-/* Structure that defines the "run-time-stats" command line command.   This
-generates a table that shows how much run time each task has */
-static const CLI_Command_Definition_t xRunTimeStats =
-{
-	"run-time-stats", /* The command string to type. */
-	"\r\nrun-time-stats:\r\n Displays a table showing how much processing time each FreeRTOS task has used\r\n",
-	prvRunTimeStatsCommand, /* The function to run. */
-	0 /* No parameters are expected. */
-};
 
 /* Structure that defines the "task-stats" command line command.  This generates
 a table that gives information on each task in the system. */
@@ -178,6 +169,18 @@ static const CLI_Command_Definition_t xParameterEcho =
 	-1 /* The user can enter any number of commands. */
 };
 
+#if( configGENERATE_RUN_TIME_STATS == 1 )
+	/* Structure that defines the "run-time-stats" command line command.   This
+	generates a table that shows how much run time each task has */
+	static const CLI_Command_Definition_t xRunTimeStats =
+	{
+		"run-time-stats", /* The command string to type. */
+		"\r\nrun-time-stats:\r\n Displays a table showing how much processing time each FreeRTOS task has used\r\n",
+		prvRunTimeStatsCommand, /* The function to run. */
+		0 /* No parameters are expected. */
+	};
+#endif /* configGENERATE_RUN_TIME_STATS */
+
 #if( configINCLUDE_QUERY_HEAP_COMMAND == 1 )
 	/* Structure that defines the "query_heap" command line command. */
 	static const CLI_Command_Definition_t xQueryHeap =
@@ -206,11 +209,16 @@ static const CLI_Command_Definition_t xParameterEcho =
 void vRegisterSampleCLICommands( void )
 {
 	/* Register all the command line commands defined immediately above. */
-	FreeRTOS_CLIRegisterCommand( &xTaskStats );
-	FreeRTOS_CLIRegisterCommand( &xRunTimeStats );
+	FreeRTOS_CLIRegisterCommand( &xTaskStats );	
 	FreeRTOS_CLIRegisterCommand( &xThreeParameterEcho );
 	FreeRTOS_CLIRegisterCommand( &xParameterEcho );
 
+	#if( configGENERATE_RUN_TIME_STATS == 1 )
+	{
+		FreeRTOS_CLIRegisterCommand( &xRunTimeStats );
+	}
+	#endif
+	
 	#if( configINCLUDE_QUERY_HEAP_COMMAND == 1 )
 	{
 		FreeRTOS_CLIRegisterCommand( &xQueryHeap );
@@ -227,7 +235,7 @@ void vRegisterSampleCLICommands( void )
 
 static BaseType_t prvTaskStatsCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
-const char *const pcHeader = "  State\tPriority\tStack\t#\r\n************************************************\r\n";
+const char *const pcHeader = "     State   Priority  Stack    #\r\n************************************************\r\n";
 BaseType_t xSpacePadding;
 
 	/* Remove compile time warnings about unused parameters, and check the
@@ -283,50 +291,54 @@ BaseType_t xSpacePadding;
 #endif /* configINCLUDE_QUERY_HEAP */
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvRunTimeStatsCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
-{
-const char * const pcHeader = "  Abs Time      % Time\r\n****************************************\r\n";
-BaseType_t xSpacePadding;
-
-	/* Remove compile time warnings about unused parameters, and check the
-	write buffer is not NULL.  NOTE - for simplicity, this example assumes the
-	write buffer length is adequate, so does not check for buffer overflows. */
-	( void ) pcCommandString;
-	( void ) xWriteBufferLen;
-	configASSERT( pcWriteBuffer );
-
-	/* Generate a table of task stats. */
-	strcpy( pcWriteBuffer, "Task" );
-	pcWriteBuffer += strlen( pcWriteBuffer );
-
-	/* Pad the string "task" with however many bytes necessary to make it the
-	length of a task name.  Minus three for the null terminator and half the 
-	number of characters in	"Task" so the column lines up with the centre of 
-	the heading. */
-	for( xSpacePadding = strlen( "Task" ); xSpacePadding < ( configMAX_TASK_NAME_LEN - 3 ); xSpacePadding++ )
+#if( configGENERATE_RUN_TIME_STATS == 1 )
+	
+	static BaseType_t prvRunTimeStatsCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 	{
-		/* Add a space to align columns after the task's name. */
-		*pcWriteBuffer = ' ';
-		pcWriteBuffer++;
+	const char * const pcHeader = "  Abs Time      % Time\r\n****************************************\r\n";
+	BaseType_t xSpacePadding;
 
-		/* Ensure always terminated. */
-		*pcWriteBuffer = 0x00;
+		/* Remove compile time warnings about unused parameters, and check the
+		write buffer is not NULL.  NOTE - for simplicity, this example assumes the
+		write buffer length is adequate, so does not check for buffer overflows. */
+		( void ) pcCommandString;
+		( void ) xWriteBufferLen;
+		configASSERT( pcWriteBuffer );
+
+		/* Generate a table of task stats. */
+		strcpy( pcWriteBuffer, "Task" );
+		pcWriteBuffer += strlen( pcWriteBuffer );
+
+		/* Pad the string "task" with however many bytes necessary to make it the
+		length of a task name.  Minus three for the null terminator and half the
+		number of characters in	"Task" so the column lines up with the centre of
+		the heading. */
+		for( xSpacePadding = strlen( "Task" ); xSpacePadding < ( configMAX_TASK_NAME_LEN - 3 ); xSpacePadding++ )
+		{
+			/* Add a space to align columns after the task's name. */
+			*pcWriteBuffer = ' ';
+			pcWriteBuffer++;
+
+			/* Ensure always terminated. */
+			*pcWriteBuffer = 0x00;
+		}
+
+		strcpy( pcWriteBuffer, pcHeader );
+		vTaskGetRunTimeStats( pcWriteBuffer + strlen( pcHeader ) );
+
+		/* There is no more data to return after this single string, so return
+		pdFALSE. */
+		return pdFALSE;
 	}
-
-	strcpy( pcWriteBuffer, pcHeader );
-	vTaskGetRunTimeStats( pcWriteBuffer + strlen( pcHeader ) );
-
-	/* There is no more data to return after this single string, so return
-	pdFALSE. */
-	return pdFALSE;
-}
+	
+#endif /* configGENERATE_RUN_TIME_STATS */
 /*-----------------------------------------------------------*/
 
 static BaseType_t prvThreeParameterEchoCommand( char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString )
 {
 const char *pcParameter;
 BaseType_t xParameterStringLength, xReturn;
-static BaseType_t lParameterNumber = 0;
+static UBaseType_t uxParameterNumber = 0;
 
 	/* Remove compile time warnings about unused parameters, and check the
 	write buffer is not NULL.  NOTE - for simplicity, this example assumes the
@@ -335,7 +347,7 @@ static BaseType_t lParameterNumber = 0;
 	( void ) xWriteBufferLen;
 	configASSERT( pcWriteBuffer );
 
-	if( lParameterNumber == 0 )
+	if( uxParameterNumber == 0 )
 	{
 		/* The first time the function is called after the command has been
 		entered just a header string is returned. */
@@ -343,7 +355,7 @@ static BaseType_t lParameterNumber = 0;
 
 		/* Next time the function is called the first parameter will be echoed
 		back. */
-		lParameterNumber = 1L;
+		uxParameterNumber = 1U;
 
 		/* There is more data to be returned as no parameters have been echoed
 		back yet. */
@@ -355,7 +367,7 @@ static BaseType_t lParameterNumber = 0;
 		pcParameter = FreeRTOS_CLIGetParameter
 						(
 							pcCommandString,		/* The command string itself. */
-							lParameterNumber,		/* Return the next parameter. */
+							uxParameterNumber,		/* Return the next parameter. */
 							&xParameterStringLength	/* Store the parameter string length. */
 						);
 
@@ -364,24 +376,24 @@ static BaseType_t lParameterNumber = 0;
 
 		/* Return the parameter string. */
 		memset( pcWriteBuffer, 0x00, xWriteBufferLen );
-		sprintf( pcWriteBuffer, "%d: ", ( int ) lParameterNumber );
-		strncat( pcWriteBuffer, pcParameter, xParameterStringLength );
+		sprintf( pcWriteBuffer, "%d: ", ( int ) uxParameterNumber );
+		strncat( pcWriteBuffer, pcParameter, ( size_t ) xParameterStringLength );
 		strncat( pcWriteBuffer, "\r\n", strlen( "\r\n" ) );
 
 		/* If this is the last of the three parameters then there are no more
 		strings to return after this one. */
-		if( lParameterNumber == 3L )
+		if( uxParameterNumber == 3U )
 		{
 			/* If this is the last of the three parameters then there are no more
 			strings to return after this one. */
 			xReturn = pdFALSE;
-			lParameterNumber = 0L;
+			uxParameterNumber = 0;
 		}
 		else
 		{
 			/* There are more parameters to return after this one. */
 			xReturn = pdTRUE;
-			lParameterNumber++;
+			uxParameterNumber++;
 		}
 	}
 
@@ -393,7 +405,7 @@ static BaseType_t prvParameterEchoCommand( char *pcWriteBuffer, size_t xWriteBuf
 {
 const char *pcParameter;
 BaseType_t xParameterStringLength, xReturn;
-static BaseType_t lParameterNumber = 0;
+static UBaseType_t uxParameterNumber = 0;
 
 	/* Remove compile time warnings about unused parameters, and check the
 	write buffer is not NULL.  NOTE - for simplicity, this example assumes the
@@ -402,7 +414,7 @@ static BaseType_t lParameterNumber = 0;
 	( void ) xWriteBufferLen;
 	configASSERT( pcWriteBuffer );
 
-	if( lParameterNumber == 0 )
+	if( uxParameterNumber == 0 )
 	{
 		/* The first time the function is called after the command has been
 		entered just a header string is returned. */
@@ -410,7 +422,7 @@ static BaseType_t lParameterNumber = 0;
 
 		/* Next time the function is called the first parameter will be echoed
 		back. */
-		lParameterNumber = 1L;
+		uxParameterNumber = 1U;
 
 		/* There is more data to be returned as no parameters have been echoed
 		back yet. */
@@ -422,7 +434,7 @@ static BaseType_t lParameterNumber = 0;
 		pcParameter = FreeRTOS_CLIGetParameter
 						(
 							pcCommandString,		/* The command string itself. */
-							lParameterNumber,		/* Return the next parameter. */
+							uxParameterNumber,		/* Return the next parameter. */
 							&xParameterStringLength	/* Store the parameter string length. */
 						);
 
@@ -430,13 +442,13 @@ static BaseType_t lParameterNumber = 0;
 		{
 			/* Return the parameter string. */
 			memset( pcWriteBuffer, 0x00, xWriteBufferLen );
-			sprintf( pcWriteBuffer, "%d: ", ( int ) lParameterNumber );
-			strncat( pcWriteBuffer, pcParameter, xParameterStringLength );
+			sprintf( pcWriteBuffer, "%d: ", ( int ) uxParameterNumber );
+			strncat( pcWriteBuffer, ( char * ) pcParameter, ( size_t ) xParameterStringLength );
 			strncat( pcWriteBuffer, "\r\n", strlen( "\r\n" ) );
 
 			/* There might be more parameters to return after this one. */
 			xReturn = pdTRUE;
-			lParameterNumber++;
+			uxParameterNumber++;
 		}
 		else
 		{
@@ -448,7 +460,7 @@ static BaseType_t lParameterNumber = 0;
 			xReturn = pdFALSE;
 
 			/* Start over the next time this command is executed. */
-			lParameterNumber = 0;
+			uxParameterNumber = 0;
 		}
 	}
 

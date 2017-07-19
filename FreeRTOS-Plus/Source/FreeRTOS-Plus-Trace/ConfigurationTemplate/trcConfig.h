@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Tracealyzer v2.7.0 Recorder Library
+ * Tracealyzer v3.0.2 Recorder Library
  * Percepio AB, www.percepio.com
  *
  * trcConfig.h
@@ -70,18 +70,20 @@
  * PORT_NXP_LPC210X						13		No			Any				
  * PORT_MICROCHIP_PIC32MZ				14		Yes			Any			
  * PORT_ARM_CORTEX_A9					15		No			Any
+ * PORT_ARM_CORTEX_M0					16		Yes			Any
  *****************************************************************************/
 
-#ifndef WIN32
-	// Set the port setting here!
-	#define SELECTED_PORT PORT_NOT_SET
+// Set the port setting here!
+#define SELECTED_PORT PORT_NOT_SET
 
-	#if (SELECTED_PORT == PORT_NOT_SET)
-		#error "You need to define SELECTED_PORT here!"
-	#endif
-#else
-	// For Win32 demo projects this is set automatically
-	#define SELECTED_PORT PORT_Win32	
+#if (SELECTED_PORT == PORT_ARM_CortexM)
+	/* For ARM Cortex-M: make sure ARM's CMSIS library is included here, which
+       is used for accessing the PRIMASK register. e.g. #include "board.h" */
+#endif
+
+
+#if (SELECTED_PORT == PORT_NOT_SET)
+	#error "You need to define SELECTED_PORT here!"
 #endif
 
 /******************************************************************************
@@ -114,7 +116,7 @@
  * recording is stopped when the buffer becomes full. This is useful for
  * recording events following a specific state, e.g., the startup sequence.
  *****************************************************************************/
-#define TRACE_RECORDER_STORE_MODE TRACE_STORE_MODE_STOP_WHEN_FULL
+#define TRACE_RECORDER_STORE_MODE TRACE_STORE_MODE_RING_BUFFER
 
 /*******************************************************************************
  * TRACE_SCHEDULING_ONLY
@@ -124,8 +126,8 @@
  * If this setting is enabled (= 1), only scheduling events are recorded.
  * If disabled (= 0), all events are recorded.
  *
- * Users of FreeRTOS+Trace Free Edition only displays scheduling events, so this
- * option can be used to avoid storing unsupported events.
+ * For users of "Free Edition", that only  displays scheduling events, this
+ * option can be used to avoid storing other events.
  *
  * Default value is 0 (store all enabled events).
  *

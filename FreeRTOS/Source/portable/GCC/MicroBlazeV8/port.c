@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -89,8 +89,10 @@ the scheduler being commenced interrupts should not be enabled, so the critical
 nesting variable is initialised to a non-zero value. */
 #define portINITIAL_NESTING_VALUE	( 0xff )
 
-/* The bit within the MSR register that enabled/disables interrupts. */
+/* The bit within the MSR register that enabled/disables interrupts and 
+exceptions respectively. */
 #define portMSR_IE					( 0x02U )
+#define portMSR_EE					( 0x100U )
 
 /* If the floating point unit is included in the MicroBlaze build, then the
 FSR register is saved as part of the task context.  portINITIAL_FSR is the value
@@ -159,7 +161,7 @@ const uint32_t ulR13 = ( uint32_t ) &_SDA_BASE_;
 	*pxTopOfStack = ( StackType_t ) 0x00000000;
 	pxTopOfStack--;
 
-	#if XPAR_MICROBLAZE_0_USE_FPU != 0
+	#if( XPAR_MICROBLAZE_USE_FPU != 0 )
 		/* The FSR value placed in the initial task context is just 0. */
 		*pxTopOfStack = portINITIAL_FSR;
 		pxTopOfStack--;
@@ -169,6 +171,14 @@ const uint32_t ulR13 = ( uint32_t ) &_SDA_BASE_;
 	disabled.  Each task will enable interrupts automatically when it enters
 	the running state for the first time. */
 	*pxTopOfStack = mfmsr() & ~portMSR_IE;
+	
+	#if( MICROBLAZE_EXCEPTIONS_ENABLED == 1 )
+	{
+		/* Ensure exceptions are enabled for the task. */
+		*pxTopOfStack |= portMSR_EE;
+	}
+	#endif
+
 	pxTopOfStack--;
 
 	/* First stack an initial value for the critical section nesting.  This

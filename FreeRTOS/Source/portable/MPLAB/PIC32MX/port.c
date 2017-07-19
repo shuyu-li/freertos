@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -122,7 +122,7 @@ override this behaviour by:
 #endif
 
 /* Let the user override the pre-loading of the initial RA with the address of
-prvTaskExitError() in case is messes up unwinding of the stack in the
+prvTaskExitError() in case it messes up unwinding of the stack in the
 debugger - in which case configTASK_RETURN_ADDRESS can be defined as 0 (NULL). */
 #ifdef configTASK_RETURN_ADDRESS
 	#define portTASK_RETURN_ADDRESS	configTASK_RETURN_ADDRESS
@@ -163,7 +163,7 @@ task stack, not the ISR stack). */
  * following line of code has no effect.  The interrupt priority is set by the
  * call to ConfigIntTimer1() in vApplicationSetupTickTimerInterrupt().
  */
-extern void __attribute__( (interrupt(ipl1), vector( configTICK_INTERRUPT_VECTOR ))) vPortTickInterruptHandler( void );
+extern void __attribute__( (interrupt(IPL1AUTO), vector( configTICK_INTERRUPT_VECTOR ))) vPortTickInterruptHandler( void );
 
 /*
  * The software interrupt handler that performs the yield.  Note that, because
@@ -171,7 +171,7 @@ extern void __attribute__( (interrupt(ipl1), vector( configTICK_INTERRUPT_VECTOR
  * code has no effect.  The interrupt priority is set by the call to
  * mConfigIntCoreSW0() in xPortStartScheduler().
  */
-void __attribute__( (interrupt(ipl1), vector(_CORE_SOFTWARE_0_VECTOR))) vPortYieldISR( void );
+void __attribute__( (interrupt(IPL1AUTO), vector(_CORE_SOFTWARE_0_VECTOR))) vPortYieldISR( void );
 
 /*
  * Used to catch tasks that attempt to return from their implementing function.

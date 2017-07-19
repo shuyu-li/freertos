@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -92,7 +92,7 @@
 #define portINITIAL_XPSR			( 0x01000000 )
 
 /* Let the user override the pre-loading of the initial LR with the address of
-prvTaskExitError() in case is messes up unwinding of the stack in the
+prvTaskExitError() in case it messes up unwinding of the stack in the
 debugger. */
 #ifdef configTASK_RETURN_ADDRESS
 	#define portTASK_RETURN_ADDRESS	configTASK_RETURN_ADDRESS
@@ -183,12 +183,15 @@ void vPortStartFirstTask( void )
 	"	msr psp, r0					\n" /* This is now the new top of stack to use in the task. */
 	"	movs r0, #2					\n" /* Switch to the psp stack. */
 	"	msr CONTROL, r0				\n"
+	"	isb							\n"
 	"	pop {r0-r5}					\n" /* Pop the registers that are saved automatically. */
 	"	mov lr, r5					\n" /* lr is now in r5. */
+	"	pop {r3}					\n" /* Return address is now in r3. */
+	"	pop {r2}					\n" /* Pop and discard XPSR. */
 	"	cpsie i						\n" /* The first task has its context and interrupts can be enabled. */
-	"	pop {pc}					\n" /* Finally, pop the PC to jump to the user defined task code. */
+	"	bx r3						\n" /* Finally, jump to the user defined task code. */
 	"								\n"
-	"	.align 2					\n"
+	"	.align 4					\n"
 	"pxCurrentTCBConst2: .word pxCurrentTCB	  "
 				  );
 }
@@ -331,7 +334,7 @@ void xPortPendSVHandler( void )
 	"										\n"
 	"	bx r3								\n"
 	"										\n"
-	"	.align 2							\n"
+	"	.align 4							\n"
 	"pxCurrentTCBConst: .word pxCurrentTCB	  "
 	);
 }

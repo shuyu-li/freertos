@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -124,7 +124,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelayUntil					1
 #define INCLUDE_vTaskDelay						1
 #define INCLUDE_eTaskGetState					1
-#define INCLUDE_xEventGroupSetBitFromISR		1
+#define INCLUDE_xEventGroupSetBitsFromISR		1
 #define INCLUDE_xTimerPendFunctionCall			1
 
 /* This demo makes use of one or more example stats formatting functions.  These
@@ -134,24 +134,24 @@ FreeRTOS/Source/tasks.c for limitations. */
 #define configUSE_STATS_FORMATTING_FUNCTIONS	1
 
 /* Cortex-A specific setting:  FPU has 32 (rather than 16) d registers.  See:
-http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-MPUs-without-a-GIC.html */
+http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-proprietary-interrupt-controller.html */
 #define configFPU_D32	1
 
 /* Cortex-A specific setting:  The address of the register within the interrupt
 controller from which the address of the current interrupt's handling function
 can be obtained.  See:
-http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-MPUs-without-a-GIC.html */
+http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-proprietary-interrupt-controller.html */
 #define configINTERRUPT_VECTOR_ADDRESS	0xFC06E010UL
 
 /* Cortex-A specific setting:  The address of End of Interrupt register within
 the interrupt controller.  See:
-http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-MPUs-without-a-GIC.html */
+http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-proprietary-interrupt-controller.html */
 #define configEOI_ADDRESS	0xFC06E038UL
 
 /* Cortex-A specific setting: configCLEAR_TICK_INTERRUPT() is a macro that is
 called by the RTOS kernel's tick handler to clear the source of the tick
 interrupt.  See:
-http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-MPUs-without-a-GIC.html */
+http://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-proprietary-interrupt-controller.html */
 #define configCLEAR_TICK_INTERRUPT() ( void ) ( *( ( volatile uint32_t * ) 0xFC068638UL ) ) /* Read PIT_PIVR to clear interrupt. */
 
 /* Prevent C code being included in assembly files when the IAR compiler is

@@ -10,9 +10,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>14</archiveVersion>
+      <archiveVersion>18</archiveVersion>
       <data>
-        <version>32</version>
+        <version>33</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -58,7 +58,7 @@
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlff.r43</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xllff.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -216,6 +216,15 @@
         <option>
           <name>GLockIpe</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>Math variant</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>Math description</name>
+          <state>Default variants of cos, sin, tan, log, log10, pow, and exp.</state>
         </option>
       </data>
     </settings>
@@ -576,7 +585,7 @@
         </option>
         <option>
           <name>ADefines</name>
-          <state>__DATA_MODEL_LARGE__</state>
+          <state></state>
         </option>
         <option>
           <name>AList</name>
@@ -707,6 +716,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -726,7 +736,7 @@
       <name>XLINK</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>27</version>
+        <version>29</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -744,7 +754,7 @@
         </option>
         <option>
           <name>FormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -797,11 +807,11 @@
         </option>
         <option>
           <name>XclOverride</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XclFile</name>
-          <state>$PROJ_DIR$\lnk430F5438A_mod.xcl</state>
+          <state>$TOOLKIT_DIR$\config\linker\lnk430f5438a.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -938,7 +948,7 @@
         </option>
         <option>
           <name>ExtraFormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -1022,6 +1032,46 @@
           <name>XlinkIPE</name>
           <state>1</state>
         </option>
+        <option>
+          <name>XlinkLogEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogInputFiles</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogModuleSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogPrintfScanf</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogSegmentSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogStackDepth</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkStackUsageEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkControlFiles</name>
+          <state></state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileName</name>
+          <state>$LIST_DIR$\$PROJ_FNAME$.call_graph.cgx</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -1054,7 +1104,11 @@
         <debug>1</debug>
         <option>
           <name>CUTest</name>
-          <state>###Uninitialized###</state>
+          <state>-I$TOOLKIT_DIR$\inc</state>
+          <state>-@$TOOLKIT_DIR$\bin\iar.cmd</state>
+          <state>-@$PROJ_DIR$\source.txt</state>
+          <state>-@$PROJ_DIR$\include.txt</state>
+          <state>--preinclude=$PROJ_DIR$\IAR_ULPAdvisor_Defs.h</state>
         </option>
         <option>
           <name>ULPRules</name>
@@ -1089,9 +1143,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>14</archiveVersion>
+      <archiveVersion>18</archiveVersion>
       <data>
-        <version>32</version>
+        <version>33</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -1108,7 +1162,7 @@
         </option>
         <option>
           <name>Hardware Multiplier</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>GOutputBinary</name>
@@ -1133,11 +1187,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlff.h</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xllff.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlff.r43</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xllff.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -1295,6 +1349,15 @@
         <option>
           <name>GLockIpe</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>Math variant</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>Math description</name>
+          <state>Default variants of cos, sin, tan, log, log10, pow, and exp.</state>
         </option>
       </data>
     </settings>
@@ -1655,7 +1718,7 @@
         </option>
         <option>
           <name>ADefines</name>
-          <state>__DATA_MODEL_LARGE__</state>
+          <state></state>
         </option>
         <option>
           <name>AList</name>
@@ -1786,6 +1849,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -1805,7 +1869,7 @@
       <name>XLINK</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>27</version>
+        <version>29</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -1823,7 +1887,7 @@
         </option>
         <option>
           <name>FormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -2017,7 +2081,7 @@
         </option>
         <option>
           <name>ExtraFormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -2100,6 +2164,46 @@
         <option>
           <name>XlinkIPE</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>XlinkLogEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogInputFiles</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogModuleSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogPrintfScanf</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogSegmentSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogStackDepth</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkStackUsageEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkControlFiles</name>
+          <state></state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileName</name>
+          <state>$LIST_DIR$\$PROJ_FNAME$.call_graph.cgx</state>
         </option>
       </data>
     </settings>
@@ -2168,9 +2272,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>14</archiveVersion>
+      <archiveVersion>18</archiveVersion>
       <data>
-        <version>32</version>
+        <version>33</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -2187,7 +2291,7 @@
         </option>
         <option>
           <name>Hardware Multiplier</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>GOutputBinary</name>
@@ -2212,11 +2316,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsff.h</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xlsff.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsff.r43</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xlsff.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -2374,6 +2478,15 @@
         <option>
           <name>GLockIpe</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>Math variant</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>Math description</name>
+          <state>Default variants of cos, sin, tan, log, log10, pow, and exp.</state>
         </option>
       </data>
     </settings>
@@ -2734,7 +2847,7 @@
         </option>
         <option>
           <name>ADefines</name>
-          <state>__DATA_MODEL_SMALL__</state>
+          <state></state>
         </option>
         <option>
           <name>AList</name>
@@ -2865,6 +2978,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -2884,7 +2998,7 @@
       <name>XLINK</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>27</version>
+        <version>29</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -2902,7 +3016,7 @@
         </option>
         <option>
           <name>FormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -3096,7 +3210,7 @@
         </option>
         <option>
           <name>ExtraFormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -3179,6 +3293,46 @@
         <option>
           <name>XlinkIPE</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>XlinkLogEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogInputFiles</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogModuleSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogPrintfScanf</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogSegmentSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogStackDepth</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkStackUsageEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkControlFiles</name>
+          <state></state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileName</name>
+          <state>$LIST_DIR$\$PROJ_FNAME$.call_graph.cgx</state>
         </option>
       </data>
     </settings>
@@ -3247,9 +3401,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>14</archiveVersion>
+      <archiveVersion>18</archiveVersion>
       <data>
-        <version>32</version>
+        <version>33</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -3266,7 +3420,7 @@
         </option>
         <option>
           <name>Hardware Multiplier</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>GOutputBinary</name>
@@ -3291,11 +3445,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlff.h</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xlmff.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlff.r43</state>
+          <state>$TOOLKIT_DIR$\lib\dlib\dl430xlmff.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -3453,6 +3607,15 @@
         <option>
           <name>GLockIpe</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>Math variant</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>Math description</name>
+          <state>Default variants of cos, sin, tan, log, log10, pow, and exp.</state>
         </option>
       </data>
     </settings>
@@ -3813,7 +3976,7 @@
         </option>
         <option>
           <name>ADefines</name>
-          <state>__DATA_MODEL_MEDIUM__</state>
+          <state></state>
         </option>
         <option>
           <name>AList</name>
@@ -3944,6 +4107,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -3963,7 +4127,7 @@
       <name>XLINK</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>27</version>
+        <version>29</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -3981,7 +4145,7 @@
         </option>
         <option>
           <name>FormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -4175,7 +4339,7 @@
         </option>
         <option>
           <name>ExtraFormatVariant</name>
-          <version>8</version>
+          <version>9</version>
           <state>2</state>
         </option>
         <option>
@@ -4258,6 +4422,46 @@
         <option>
           <name>XlinkIPE</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>XlinkLogEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogInputFiles</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogModuleSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogPrintfScanf</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogSegmentSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogStackDepth</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkStackUsageEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkControlFiles</name>
+          <state></state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkCallGraphFileName</name>
+          <state>$LIST_DIR$\$PROJ_FNAME$.call_graph.cgx</state>
         </option>
       </data>
     </settings>

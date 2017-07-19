@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Tracealyzer v2.7.0 Recorder Library
+* Tracealyzer v3.0.2 Recorder Library
 * Percepio AB, www.percepio.com
 *
 * trcKernelHooks.h
@@ -187,7 +187,7 @@
 #undef trcKERNEL_HOOKS_TASK_RESUME
 #define trcKERNEL_HOOKS_TASK_RESUME(SERVICE, pxTCB) \
 	vTraceStoreKernelCall(SERVICE, TRACE_CLASS_TASK, TRACE_GET_TASK_NUMBER(pxTCB));
-	
+
 #undef trcKERNEL_HOOKS_TIMER_EVENT
 #define trcKERNEL_HOOKS_TIMER_EVENT(SERVICE, pxTimer) \
 	vTraceStoreKernelCall(SERVICE, TRACE_CLASS_TIMER, TRACE_GET_TIMER_NUMBER(pxTimer));

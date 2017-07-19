@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -192,7 +192,7 @@ static void prvTimerTestTask( void *pvParameters )
 	xOneShotTimer = xTimerCreate(	"Oneshot Timer",				/* Text name to facilitate debugging.  The kernel does not use this itself. */
 									tmrdemoONE_SHOT_TIMER_PERIOD,	/* The period for the timer. */
 									pdFALSE,						/* Don't auto-reload - hence a one shot timer. */
-									( void * ) 0,					/* The timer identifier.  In this case this is not used as the timer has its own callback. */
+									( void * ) 0,					/* The timer identifier.  Initialise to 0, then increment each time it is called. */
 									prvOneShotTimerCallback );		/* The callback to be called when the timer expires. */
 
 	if( xOneShotTimer == NULL )
@@ -285,17 +285,15 @@ TickType_t xTimer;
 
 	for( xTimer = 0; xTimer < configTIMER_QUEUE_LENGTH; xTimer++ )
 	{
-		/* As the timer queue is not yet full, it should be possible to both create
-		and start a timer.  These timers are being started before the scheduler has
-		been started, so their block times should get set to zero within the timer
-		API itself. */
+		/* As the timer queue is not yet full, it should be possible to both
+		create and start a timer.  These timers are being started before the
+		scheduler has been started, so their block times should get set to zero
+		within the timer API itself. */
 		xAutoReloadTimers[ xTimer ] = xTimerCreate( "FR Timer",							/* Text name to facilitate debugging.  The kernel does not use this itself. */
 													( ( xTimer + ( TickType_t ) 1 ) * xBasePeriod ),/* The period for the timer.  The plus 1 ensures a period of zero is not specified. */
 													pdTRUE,								/* Auto-reload is set to true. */
 													( void * ) xTimer,					/* An identifier for the timer as all the auto reload timers use the same callback. */
 													prvAutoReloadTimerCallback );		/* The callback to be called when the timer expires. */
-
-		configASSERT( strcmp( pcTimerGetTimerName( xAutoReloadTimers[ xTimer ] ), "FR Timer" ) == 0 );
 
 		if( xAutoReloadTimers[ xTimer ] == NULL )
 		{
@@ -304,6 +302,8 @@ TickType_t xTimer;
 		}
 		else
 		{
+			configASSERT( strcmp( pcTimerGetName( xAutoReloadTimers[ xTimer ] ), "FR Timer" ) == 0 );
+
 			/* The scheduler has not yet started, so the block period of
 			portMAX_DELAY should just get set to zero in xTimerStart().  Also,
 			the timer queue is not yet full so xTimerStart() should return
@@ -395,9 +395,13 @@ static void	prvTest3_CheckAutoReloadExpireRates( void )
 {
 uint8_t ucMaxAllowableValue, ucMinAllowableValue, ucTimer;
 TickType_t xBlockPeriod, xTimerPeriod, xExpectedNumber;
+UBaseType_t uxOriginalPriority;
 
-	/* Check the auto reload timers expire at the expected rates. */
-
+	/* Check the auto reload timers expire at the expected rates.  Do this at a
+	high priority for maximum accuracy.  This is ok as most of the time is spent
+	in the Blocked state. */
+	uxOriginalPriority = uxTaskPriorityGet( NULL );
+	vTaskPrioritySet( NULL, ( configMAX_PRIORITIES - 1 ) );
 
 	/* Delaying for configTIMER_QUEUE_LENGTH * xBasePeriod ticks should allow
 	all the auto reload timers to expire at least once. */
@@ -424,6 +428,9 @@ TickType_t xBlockPeriod, xTimerPeriod, xExpectedNumber;
 			configASSERT( xTestStatus );
 		}
 	}
+
+	/* Return to the original priority. */
+	vTaskPrioritySet( NULL, uxOriginalPriority );
 
 	if( xTestStatus == pdPASS )
 	{
@@ -1037,12 +1044,12 @@ static TickType_t uxTick = ( TickType_t ) -1;
 
 static void prvAutoReloadTimerCallback( TimerHandle_t pxExpiredTimer )
 {
-uint32_t ulTimerID;
+size_t uxTimerID;
 
-	ulTimerID = ( uint32_t ) pvTimerGetTimerID( pxExpiredTimer );
-	if( ulTimerID <= ( configTIMER_QUEUE_LENGTH + 1 ) )
+	uxTimerID = ( size_t ) pvTimerGetTimerID( pxExpiredTimer );
+	if( uxTimerID <= ( configTIMER_QUEUE_LENGTH + 1 ) )
 	{
-		( ucAutoReloadTimerCounters[ ulTimerID ] )++;
+		( ucAutoReloadTimerCounters[ uxTimerID ] )++;
 	}
 	else
 	{
@@ -1055,9 +1062,22 @@ uint32_t ulTimerID;
 
 static void prvOneShotTimerCallback( TimerHandle_t pxExpiredTimer )
 {
-	/* The parameter is not used in this case as only one timer uses this
-	callback function. */
-	( void ) pxExpiredTimer;
+/* A count is kept of the number of times this callback function is executed.
+The count is stored as the timer's ID.  This is only done to test the
+vTimerSetTimerID() function. */
+static size_t uxCallCount = 0;
+size_t uxLastCallCount;
+
+	/* Obtain the timer's ID, which should be a count of the number of times
+	this callback function has been executed. */
+	uxLastCallCount = ( size_t ) pvTimerGetTimerID( pxExpiredTimer );
+	configASSERT( uxLastCallCount == uxCallCount );
+
+	/* Increment the call count, then save it back as the timer's ID.  This is
+	only done to test the vTimerSetTimerID() API function. */
+	uxLastCallCount++;
+	vTimerSetTimerID( pxExpiredTimer, ( void * ) uxLastCallCount );
+	uxCallCount++;
 
 	ucOneShotTimerCounter++;
 }

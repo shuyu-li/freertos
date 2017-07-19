@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -143,6 +143,7 @@
 #include "QueueSet.h"
 #include "recmutex.h"
 #include "EventGroupsDemo.h"
+#include "flop_mz.h"
 
 /*-----------------------------------------------------------*/
 
@@ -160,9 +161,10 @@ in ticks using the portTICK_PERIOD_MS constant. */
 #define mainSEM_TEST_PRIORITY				( tskIDLE_PRIORITY + 1 )
 #define mainBLOCK_Q_PRIORITY				( tskIDLE_PRIORITY + 2 )
 #define mainCOM_TEST_PRIORITY				( tskIDLE_PRIORITY + 2 )
-#define mainINTEGER_TASK_PRIORITY           ( tskIDLE_PRIORITY )
+#define mainINTEGER_TASK_PRIORITY			( tskIDLE_PRIORITY )
 #define mainGEN_QUEUE_TASK_PRIORITY			( tskIDLE_PRIORITY )
 #define mainQUEUE_OVERWRITE_TASK_PRIORITY	( tskIDLE_PRIORITY )
+#define mainFLOP_TASK_PRIORITY				( tskIDLE_PRIORITY )
 
 /* The LED controlled by the 'check' software timer. */
 #define mainCHECK_LED						( 2 )
@@ -242,6 +244,7 @@ TimerHandle_t xTimer = NULL;
 	vStartQueueSetTasks();
 	vStartRecursiveMutexTasks();
 	vStartEventGroupTasks();
+	vStartMathTasks( mainFLOP_TASK_PRIORITY );
 
 	/* Create the tasks defined within this file. */
 	xTaskCreate( prvRegTestTask1,			/* The function that implements the task. */
@@ -294,6 +297,11 @@ extern void vRegTest1( volatile unsigned long * );
 	/* Avoid compiler warnings. */
 	( void ) pvParameters;
 
+	/* Must be called before any hardware floating point operations are
+	performed to let the RTOS portable layer know that this task requires
+	a floating point context. */
+	portTASK_USES_FLOATING_POINT();
+
 	/* Pass the address of the RegTest1 loop counter into the test function,
 	which is necessarily implemented in assembler. */
 	vRegTest1( &ulRegTest1Cycles );
@@ -309,6 +317,11 @@ extern void vRegTest2( volatile unsigned long * );
 
 	/* Avoid compiler warnings. */
 	( void ) pvParameters;
+
+	/* Must be called before any hardware floating point operations are
+	performed to let the RTOS portable layer know that this task requires
+	a floating point context. */
+	portTASK_USES_FLOATING_POINT();
 
 	/* Pass the address of the RegTest2 loop counter into the test function,
 	which is necessarily implemented in assembler. */
@@ -392,6 +405,10 @@ extern unsigned long ulHighFrequencyTimerInterrupts;
 	else if( xAreEventGroupTasksStillRunning() != pdTRUE )
 	{
 		ulErrorOccurred |= ( 0x01UL << 13UL );
+	}
+	else if( xAreMathsTaskStillRunning() != pdTRUE )
+	{
+		ulErrorOccurred |= ( 0x01UL << 15UL );
 	}
 
 	/* Ensure the expected number of high frequency interrupts have occurred. */

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Tracealyzer v2.7.0 Recorder Library
+ * Tracealyzer v3.0.2 Recorder Library
  * Percepio AB, www.percepio.com
  *
  * trcKernel.h
@@ -45,7 +45,10 @@
 /* Internal functions */
 
 #if !defined INCLUDE_READY_EVENTS || INCLUDE_READY_EVENTS == 1
-void vTraceStoreTaskReady(objectHandleType handle);
+	void vTraceSetReadyEventsEnabled(int status);
+	void vTraceStoreTaskReady(objectHandleType handle);
+#else
+	#define vTraceSetReadyEventsEnabled(status)
 #endif
 
 void vTraceStoreLowPower(uint32_t flag);
