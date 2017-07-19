@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -114,12 +114,12 @@
 --------------------------------------------------------------------------------
 */
 
-#define TEST_MODE 1  // 1 for medium test, 2 for full test, 3 for Xtensa specific tests (cf. tests below).
+#define TEST_MODE 3  // 1 for medium test, 2 for full test, 3 for Xtensa specific tests (cf. tests below).
 
 // When using TEST_MODE 3, more Xtensa specific tests can be selected below (select one test and recompile)
 const int u_xt_alloca                  = 0;
-const int u_xt_coproc                  = 1;
-const int u_xt_clib                    = 0;
+const int u_xt_coproc                  = 0;
+const int u_xt_clib                    = 1;
 const int u_xt_intr                    = 0;
 const int u_example                    = 0;
 const int u_perf_test                  = 0;
@@ -159,7 +159,7 @@ const int u_perf_test                  = 0;
 
 /* The rate at which the LED controlled by the 'check' task will toggle when no
 errors have been detected. */
-#define mainNO_ERROR_PERIOD	( 1000 )
+#define mainNO_ERROR_PERIOD	( 2000 )
 
 /* The rate at which the LED controlled by the 'check' task will toggle when an
 error has been detected. */

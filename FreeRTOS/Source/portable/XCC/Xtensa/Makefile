@@ -56,7 +56,7 @@ ifeq ($(TARGET),board)
 DFLAGS      = -DXT_BOARD
 endif
 
-IFLAGS      = -I$(FR_SRCDIR)$(S)include -I$(XT_SRCDIR) -I$(TSTROOT)
+IFLAGS      = -I$(FR_SRCDIR)$(S)include -I$(XT_SRCDIR) -I$(TSTROOT) -I$(BLDDIR)
 CFLAGS      = -O2 -g
 CCFLAGS     = $(CFLAGS) -Wall -mno-coproc -mlongcalls -ffunction-sections -mno-l32r-flix $(DFLAGS)
 ASFLAGS     = $(CCFLAGS)
@@ -74,6 +74,7 @@ mkdir : $(BLDDIR)/.mkdir
 $(BLDDIR)/.mkdir :
 	@$(MKPATH) $(BLDDIR)
 	@echo "" > $@
+	-$(CP) $(CONFIGDIR)/xtensa-elf/include/sys/reent.h $(BLDDIR)/reent.h
 
 $(OSLIB) : $(LIB_O_LIST)
 	$(AR) -rs $@ $^

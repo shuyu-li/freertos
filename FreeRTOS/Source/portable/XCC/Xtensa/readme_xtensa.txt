@@ -1,7 +1,7 @@
     FreeRTOS Port for Xtensa Configurable and Diamond Processors
     ============================================================
 
-                FreeRTOS Version 8.2.0
+                FreeRTOS Version 9.0.0
 
 
 Introduction
@@ -11,7 +11,7 @@ This document describes the Xtensa port for FreeRTOS multitasking RTOS.
 For an introduction to FreeRTOS itself, please refer to FreeRTOS
 documentation.
 
-This port currently works with version 8.2.0.
+This port currently works with version 9.0.0.
 
 
 Xtensa Configuration Requirements and Restrictions
@@ -28,12 +28,13 @@ xtensa-linux tools provided you have the correct overlay for your Xtensa
 configuration. However, this has not been tested and is currently not
 supported by Cadence.
 
-This port includes optional reentrancy support for the 'newlib' C runtime
-library that is distributed with Xtensa Tools, providing thread-safety on
-a per task basis (for use in tasks only, not interrupt handlers).
+This port includes optional reentrancy support for the 'newlib' and
+'xclib' C runtime libraries distributed with Xtensa Tools, providing
+thread-safety on a per task basis (for use in tasks only, not interrupt
+handlers).
 
-NOTE: At this time only the 'newlib' C library is supported for thread
-safety. The 'xclib' and 'uclibc' libraries are not reentrant and do not
+NOTE: At this time only 'newlib' and 'xclib' C libraries are supported
+for thread safety. The 'uclibc' library is not reentrant and does not
 provide thread safety at this time. However, if you are not concerned
 with reentrancy then you can use any of these libraries.
 
@@ -213,19 +214,19 @@ The example.exe binary appears in the platform specific subdirectory
 described earlier.  For the following commands, change to that directory
 or prepend it as the path of example.exe.
 
-To build your application with thread-safe C library support using
-the open-source 'newlib' library provided with the Xtensa Tools, you
+To build your application with thread-safe C library support, you
 need to make certain modifications to the application to plug in and
-invoke the newlib reentrancy support. This allows each task to use
-the library without interference with other tasks (it is not safe for
-interrupt handlers to call the C library).
+invoke the reentrancy support. This allows each task to use the library
+without interference with other tasks (it is not safe for interrupt
+handlers to call the C library).
 
 First, you must define
 
     XT_USE_THREAD_SAFE_CLIB
 
-to a nonzero either in FreeRTOSConfig.h or in the compiler's command
-line.
+to a nonzero value either in xtensa_config.h or on the compiler's command
+line. Note that the default xtensa_config.h provided with this port does
+define this to 1 if either newlib or xclib is detected.
 
 Then, you must also make sure to allocate extra space on the stack for
 each task that will use the C library reentrant functions. This extra
@@ -241,11 +242,24 @@ E.g. if your task requires 2000 bytes of stack space, you must allocate
 
 To build the example with thread-safe C library support:
 
-> xt-make CFLAGS="-O0 -DXT_USE_THREAD_SAFE_CLIB" example
+> xt-make CFLAGS="-O0" example
 
 The "-O0" is necessary because you are overriding the default COPT=-O0.
 You can specify any optimization level you require (if none, the compiler
 defaults to -O2).
+
+IMPORTANT NOTE
+--------------
+
+The header file FreeRTOS.h, which is a part of the core FreeRTOS sources,
+includes <reent.h> if thread safety for the C libraries is enabled. For
+xclib, this file exists in <sys/reent.h> and so is reported as missing.
+To work around this, the makefiles supplied with this port will copy the
+reent.h header into the build directory during the build process. If you
+use a different build process, then you must make sure to copy this file
+to a location that is included in the list of include paths. This can be
+the build directory or the directory that contains the Xtensa port source
+files.
 
 
 Running or Debugging an Application
@@ -350,8 +364,8 @@ Many definitions can be provided at compile-time via the -D option
 without editing the source code. Here are some of the more useful ones:
 
     XT_USE_THREAD_SAFE_CLIB Enable support for the reentrancy to provide
-                            thread-safety in the GNU newlib supplied with
-                            Xtensa Tools. Default off.
+                            thread-safety for the newlib and xclib libraries
+                            supplied with Xtensa Tools. Default ON.
 
     Note, the follwing defines are unique to the Xtensa port so have names
     beginning with "XT_".

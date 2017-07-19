@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -154,7 +154,7 @@ static inline unsigned portENTER_CRITICAL_NESTED() { unsigned state = XTOS_SET_I
 /* Kernel utilities. */
 void vPortYield( void );
 void _frxt_setup_switch( void );
-#define portYIELD()					vPortYield()
+#define portYIELD()       vPortYield()
 #define portYIELD_FROM_ISR()		_frxt_setup_switch()
 /*-----------------------------------------------------------*/
 
@@ -207,10 +207,17 @@ void exit(int);
 #endif
 
 
-/* C library support -- currently only NEWLIB is supported. */
+/* C library support -- only XCLIB and NEWLIB are supported. */
 
 /* To enable thread-safe C library support, XT_USE_THREAD_SAFE_CLIB must be
    defined to be > 0 somewhere above or on the command line. */
+
+#if (XT_USE_THREAD_SAFE_CLIB > 0u) && (XSHAL_CLIB == XTHAL_CLIB_XCLIB)
+extern void vPortClibInit(void);
+
+// No cleanup necessary at this time.
+#define portCLEAN_UP_TCB(pxTCB)
+#endif // XCLIB support
 
 #if (XT_USE_THREAD_SAFE_CLIB > 0u) && (XSHAL_CLIB == XTHAL_CLIB_NEWLIB)
 extern void vPortClibInit(void);
@@ -226,7 +233,7 @@ static inline void vPortCleanUpTcbClib(struct _reent *ptr)
         fp->_close = NULL;
     }
 }
-#endif // C library support
+#endif // NEWLIB support
 
 #endif // __ASSEMBLER__
 

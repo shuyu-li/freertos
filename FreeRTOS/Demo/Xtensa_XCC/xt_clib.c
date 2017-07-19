@@ -27,13 +27,13 @@
 *
 *                                          C LIBRARY TEST
 *
-* This test exercises the C library thread safety mechanism in the Xtensa port of FreeRTOSI.
+* This test exercises the C library thread safety mechanism in the Xtensa port of FreeRTOS.
 * It verifies that every task that specifies C library context save gets its own private
 * save area, and tasks that do not specify this get to share a global context area.
 *
 * This test is only meaningful if XT_USE_THREAD_SAFE_CLIB is enabled.
-* Currently this test works only for the newlib C library as it is the only one supporting
-* thread safety.
+* Currently this test works only for the newlib  and xclib C libraries as they are the only
+* ones supporting thread safety.
 *
 * Target  : All Xtensa configurable and Diamond preconfigured processors.
 *********************************************************************************************************
@@ -45,7 +45,7 @@
 #include <stdlib.h>
 
 #if XT_USE_THREAD_SAFE_CLIB > 0u
-#include <reent.h>
+#include <sys/reent.h>
 #else
 #warning XT_USE_THREAD_SAFE_CLIB not defined, this test will do nothing.
 #endif
@@ -74,7 +74,7 @@
 /* Uniform prefix for reporting PASS/FAIL test results. */
 #define TEST_PFX    "Xtensa C library context switch test (xt_clib)"
 
-#define NTASKS      4
+#define NTASKS      1
 
 unsigned int result[NTASKS];
 
@@ -85,10 +85,9 @@ typedef struct
 
 	#if ( portUSING_MPU_WRAPPERS == 1 )
 		xMPU_SETTINGS	xMPUSettings;		/*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
-		BaseType_t		xUsingStaticallyAllocatedStack; /* Set to pdTRUE if the stack is a statically allocated array, and pdFALSE if the stack is dynamically allocated. */
 	#endif
 
-	ListItem_t			xGenericListItem;	/*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
+	ListItem_t			xStateListItem;	/*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
 	ListItem_t			xEventListItem;		/*< Used to reference a task from an event list. */
 	UBaseType_t			uxPriority;			/*< The priority of the task.  0 is the lowest priority. */
 	StackType_t			*pxStack;			/*< Points to the start of the stack. */
@@ -99,24 +98,28 @@ typedef struct
 	#endif
 
 	#if ( portCRITICAL_NESTING_IN_TCB == 1 )
-		UBaseType_t 	uxCriticalNesting; 	/*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
+		UBaseType_t		uxCriticalNesting;	/*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
 	#endif
 
 	#if ( configUSE_TRACE_FACILITY == 1 )
 		UBaseType_t		uxTCBNumber;		/*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-		UBaseType_t  	uxTaskNumber;		/*< Stores a number specifically for use by third party trace code. */
+		UBaseType_t		uxTaskNumber;		/*< Stores a number specifically for use by third party trace code. */
 	#endif
 
 	#if ( configUSE_MUTEXES == 1 )
-		UBaseType_t 	uxBasePriority;		/*< The priority last assigned to the task - used by the priority inheritance mechanism. */
-		UBaseType_t 	uxMutexesHeld;
+		UBaseType_t		uxBasePriority;		/*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+		UBaseType_t		uxMutexesHeld;
 	#endif
 
 	#if ( configUSE_APPLICATION_TASK_TAG == 1 )
 		TaskHookFunction_t pxTaskTag;
 	#endif
 
-	#if ( configGENERATE_RUN_TIME_STATS == 1 )
+	#if( configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0 )
+		void *pvThreadLocalStoragePointers[ configNUM_THREAD_LOCAL_STORAGE_POINTERS ];
+	#endif
+
+	#if( configGENERATE_RUN_TIME_STATS == 1 )
 		uint32_t		ulRunTimeCounter;	/*< Stores the amount of time the task has spent in the Running state. */
 	#endif
 
@@ -128,7 +131,7 @@ typedef struct
 		newlib and must provide system-wide implementations of the necessary
 		stubs. Be warned that (at the time of writing) the current newlib design
 		implements a system-wide malloc() that must be provided with locks. */
-		struct 	_reent xNewLib_reent;
+		struct	_reent xNewLib_reent;
 	#endif
 
 		// Truncated after this point
@@ -156,19 +159,20 @@ void Task_Func(void *pdata)
 #if XT_USE_THREAD_SAFE_CLIB > 0u
 
     while (cnt < 400) {
-#if XSHAL_CLIB == XTHAL_CLIB_XCLIB
-        // Nothing yet
-#elif XSHAL_CLIB == XTHAL_CLIB_NEWLIB
-
+#if XSHAL_CLIB == XTHAL_CLIB_XCLIB || XSHAL_CLIB == XTHAL_CLIB_NEWLIB
         if (pxCurrentTCB)
         {
+            // Note that _impure_ptr (newlib) is redefined as _reent_ptr in the case of
+            // xclib.
             if ((uint32_t)_impure_ptr != (uint32_t)(&pxCurrentTCB->xNewLib_reent)) {
+                // A failure might mean that the hack definition of TCB in this file, xt_clib.c,
+                // is out of date with respect to the official definition in tasks.c.
                 printf("Task %d, Bad reent ptr\n", val);
                 exit(1);
             }
         }
         else {
-            printf("Task %d, Bad reent ptr in TCB!\n", val);
+            printf("Task %d, Bad TCB pointer!\n", val); // This means there is some corruption
             exit(2);
         }
 #else

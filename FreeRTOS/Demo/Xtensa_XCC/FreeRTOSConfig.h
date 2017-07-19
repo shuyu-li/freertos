@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -146,9 +146,9 @@
 #define configQUEUE_REGISTRY_SIZE		0
 
 #ifdef SMALL_TEST
-#define configUSE_MUTEXES				0
-#define configUSE_RECURSIVE_MUTEXES		0
-#define configUSE_COUNTING_SEMAPHORES	0
+#define configUSE_MUTEXES				1
+#define configUSE_RECURSIVE_MUTEXES		1
+#define configUSE_COUNTING_SEMAPHORES	1
 #define configCHECK_FOR_STACK_OVERFLOW	0
 #else
 #define configUSE_MUTEXES				1
@@ -182,9 +182,9 @@
    interrupts. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY	XCHAL_EXCM_LEVEL
 
-/* Thread-safe C lib support is turned off by default. This can be overridden
-   from the compiler/make command line.
-   NOTE that this support is currently available only for NEWLIB. */
+/* XT_USE_THREAD_SAFE_CLIB is defined in xtensa_config.h and can be
+   overridden from the compiler/make command line. The small test
+   however always disables C lib thread safety to minimize size. */
 #ifdef SMALL_TEST
   #define configUSE_NEWLIB_REENTRANT		0
 #else
