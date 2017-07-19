@@ -23,8 +23,8 @@ include $(CONFIGDIR)/misc/hostenv.mk
 # Source code and build locations
 
 CWDIR       = $(subst /,$(S),$(CURDIR))
-OSROOT      = $(CWDIR)$(S)..$(S)..$(S)Source$(S)portable$(S)XCC$(S)Xtensa
 SRCROOT     = $(CWDIR)
+OSROOT      = $(SRCROOT)$(S)..$(S)..$(S)Source$(S)portable$(S)XCC$(S)Xtensa
 BLDROOT     = $(SRCROOT)$(S)build
 BLDDIR      = $(BLDROOT)$(S)$(XT_CORE)
 
@@ -68,7 +68,7 @@ OBJ_FILES   = $(addprefix $(BLDDIR)/,$(patsubst %.c,%.o,$(notdir $(SRC_FILES))))
 
 # Search paths
 
-vpath %.c ParTest ..$(S)Common$(S)Minimal
+vpath %.c $(SRCROOT) $(SRCROOT)$(S)ParTest $(SRCROOT)$(S)..$(S)Common$(S)Minimal
 
 # Output files
 
@@ -94,7 +94,7 @@ endif
 # NOTE: Default LDFLAGS are set up to discard unused sections so that 
 # the final exe size is minimized.
 
-IFLAGS      = -I. -I$(OSROOT) -I..$(S)Common$(S)include -I..$(S)..$(S)Source$(S)include
+IFLAGS      = -I$(SRCROOT) -I$(OSROOT) -I$(SRCROOT)$(S)..$(S)Common$(S)include -I$(SRCROOT)$(S)..$(S)..$(S)Source$(S)include
 CFLAGS     ?= -O2 -Os -g
 CCFLAGS     = $(CFLAGS) -mlongcalls $(DFLAGS)
 LDFLAGS    ?= -Wl,--gc-sections
@@ -109,9 +109,6 @@ all : mkdir $(EXE) example perf_test xt_coproc xt_alloca xt_clib xt_intr
 
 # NOTE: The small test needs its own version of the FreeRTOS library.
 # So don't club it with the other tests, it has to be built on its own.
-# You should do a "make clean" before running "make small" to make sure
-# you get the smaller version. Similarly, run "make clean" before running
-# "make all".
 small : mkdir small_test
 
 os  : mkdir $(OSLIB)
@@ -129,7 +126,7 @@ $(BLDDIR)/%.o : %.c
 	$(CC) $(CCFLAGS) $(IFLAGS) -MD -MF $(subst .o,.d,$@) -c -o $@ $<
 
 $(OSLIB) :
-	$(MAKE) -C $(OSROOT) -f Makefile all TARGET=$(TARGET) CFLAGS="$(CFLAGS)" BLDROOT=$(BLDROOT)
+	$(MAKE) -f $(OSROOT)$(S)Makefile all TARGET=$(TARGET) CFLAGS="$(CFLAGS)" SRCROOT=$(OSROOT) BLDROOT=$(BLDROOT)
 
 example   : $(BLDDIR)/example.exe
 

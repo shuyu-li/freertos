@@ -107,8 +107,16 @@ extern "C" {
 /* Check C library thread safety support and compute size of C library save area. */
 #if XT_USE_THREAD_SAFE_CLIB > 0u
   #if XSHAL_CLIB == XTHAL_CLIB_XCLIB
-    #define XT_HAVE_THREAD_SAFE_CLIB        0
-    #error Thread-safe operation is not yet supported for the XCLIB C library.
+    #define XT_HAVE_THREAD_SAFE_CLIB        1
+    #if !defined __ASSEMBLER__
+      #include <sys/reent.h>
+      #define XT_CLIB_CONTEXT_AREA_SIZE     ((sizeof(struct _reent) + 15) + (-16))
+      #define XT_CLIB_GLOBAL_PTR            _reent_ptr
+      #define _REENT_INIT_PTR               _init_reent
+      #define _impure_ptr                   _reent_ptr
+
+      void _reclaim_reent(void * ptr);
+    #endif
   #elif XSHAL_CLIB == XTHAL_CLIB_NEWLIB
     #define XT_HAVE_THREAD_SAFE_CLIB        1
     #if !defined __ASSEMBLER__
@@ -152,8 +160,8 @@ extern "C" {
 #define XT_STACK_MIN_SIZE         ((XT_XTRA_SIZE + XT_USER_SIZE) / sizeof(unsigned char))
 
 /* OS overhead with and without C library thread context. */
-#define XT_STACK_EXTRA            (XT_XTRA_SIZE)
-#define XT_STACK_EXTRA_CLIB       (XT_XTRA_SIZE + XT_CLIB_CONTEXT_AREA_SIZE)
+#define XT_STACK_EXTRA              (XT_XTRA_SIZE)
+#define XT_STACK_EXTRA_CLIB         (XT_XTRA_SIZE + XT_CLIB_CONTEXT_AREA_SIZE)
 
 
 #ifdef __cplusplus

@@ -9,24 +9,24 @@ How to build and run the tests
 To build the tests, run "make all" in this directory. This will build
 the following files under the build/ subdirectory -
 
-    xtensa_demo.exe -- FreeRTOS demo program
+    xtensa_demo.elf -- FreeRTOS demo program
 
-    example.exe     -- Simple Xtensa demo program
+    example.elf     -- Simple Xtensa demo program
     
-    perf_test.exe   -- Performance benchmarking
+    perf_test.elf   -- Performance benchmarking
 
-    xt_coproc.exe   -- Xtensa coprocessor exerciser demo
+    xt_coproc.elf   -- Xtensa coprocessor exerciser demo
     
-    xt_alloca.exe   -- Xtensa alloca exception demo
+    xt_alloca.elf   -- Xtensa alloca exception demo
     
-    xt_clib.exe     -- Xtensa C lib demo (Newlib)
+    xt_clib.elf     -- Xtensa C lib demo (Newlib)
 
-    xt_intr.exe     -- Xtensa interrupt test
+    xt_intr.elf     -- Xtensa interrupt test
 
 To build a minimal-size test, run "make small". This will build the
 following test in build/ -
 
-    small_test.exe  -- Small size test
+    small_test.elf  -- Small size test
 
 This test modifies the configuration to minimize the code and data
 size. See the FreeRTOSConfig.h file for the changes from the default
@@ -53,7 +53,7 @@ To build the tests for your own hardware, you must provide the correct
 linker script (LSP) and your own board support package. See the makefile
 and refer to Xtensa tools documentation for more details.
 
-The FreeRTOS demo program xtensa_demo.exe can run in medium or full mode.
+The FreeRTOS demo program xtensa_demo.elf can run in medium or full mode.
 Edit the macro TEST_MODE at the beginning of main.c to select either Xtensa demo,
 or FreeRTOS medium/full demo. Note that there is a separate project with FreeRTOS
 small demo (with its own lightweight FreeRTOSConfig.h).
@@ -61,6 +61,17 @@ small demo (with its own lightweight FreeRTOSConfig.h).
 If you build from Xplorer, remember to enable -mlongcalls in the Assembler
 options for certain targets (e.g. when you get the linker warning: dangerous
 relocation).
+
+
+Notes for version 1.5.0
+-----------------------
+
+- This version supports FreeRTOS version 9.0.0.
+
+- This version supports thread safe operation with the Xtensa C Library
+  (XCLIB) in addition to the Newlib C library.
+
+- Incorrect function prototypes for xt_ints_on/xt_ints_off have been fixed.
 
 
 Notes for version 1.4.2

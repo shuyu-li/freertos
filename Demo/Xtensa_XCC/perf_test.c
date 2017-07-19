@@ -982,7 +982,7 @@ int main_perf_test(int argc, char *argv[])
 	       XT_USER_SIZE, XT_STACK_MIN_SIZE);
 
 	xTaskCreate( test, "test", configMINIMAL_STACK_SIZE, (void *)NULL, PERF_TEST_PRIORITY, NULL );
-	/* Finally start the scheduler. */
+    /* Finally start the scheduler. */
 	vTaskStartScheduler();
 	/* Will only reach here if there is insufficient heap available to start
 	the scheduler. */

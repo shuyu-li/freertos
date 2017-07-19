@@ -76,9 +76,11 @@ extern xt_handler xt_set_interrupt_handler(int n, xt_handler f, void * arg);
   Call this function to enable the specified interrupts.
 
     mask     - Bit mask of interrupts to be enabled.
+
+  Returns the previous state of the interrupt enables.
 -------------------------------------------------------------------------------
 */
-extern void xt_ints_on(unsigned int mask);
+extern unsigned int xt_ints_on(unsigned int mask);
 
 
 /*
@@ -86,9 +88,11 @@ extern void xt_ints_on(unsigned int mask);
   Call this function to disable the specified interrupts.
 
     mask     - Bit mask of interrupts to be disabled.
+
+  Returns the previous state of the interrupt enables.
 -------------------------------------------------------------------------------
 */
-extern void xt_ints_off(unsigned int mask);
+extern unsigned int xt_ints_off(unsigned int mask);
 
 
 /*

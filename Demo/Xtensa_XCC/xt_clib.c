@@ -45,7 +45,7 @@
 #include <stdlib.h>
 
 #if XT_USE_THREAD_SAFE_CLIB > 0u
-#include <reent.h>
+#include <sys/reent.h>
 #else
 #warning XT_USE_THREAD_SAFE_CLIB not defined, this test will do nothing.
 #endif
@@ -157,9 +157,18 @@ void Task_Func(void *pdata)
 
     while (cnt < 400) {
 #if XSHAL_CLIB == XTHAL_CLIB_XCLIB
-        // Nothing yet
+        if (pxCurrentTCB)
+        {
+            if ((uint32_t)_reent_ptr != (uint32_t)(&pxCurrentTCB->xNewLib_reent)) {
+                printf("Task %d, Bad reent ptr\n", val);
+                exit(1);
+            }
+        }
+        else {
+            printf("Task %d, Bad reent ptr in TCB!\n", val);
+            exit(2);
+        }
 #elif XSHAL_CLIB == XTHAL_CLIB_NEWLIB
-
         if (pxCurrentTCB)
         {
             if ((uint32_t)_impure_ptr != (uint32_t)(&pxCurrentTCB->xNewLib_reent)) {

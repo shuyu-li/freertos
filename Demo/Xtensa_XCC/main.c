@@ -159,7 +159,7 @@ const int u_perf_test                  = 0;
 
 /* The rate at which the LED controlled by the 'check' task will toggle when no
 errors have been detected. */
-#define mainNO_ERROR_PERIOD	( 1000 )
+#define mainNO_ERROR_PERIOD	( 2000 )
 
 /* The rate at which the LED controlled by the 'check' task will toggle when an
 error has been detected. */

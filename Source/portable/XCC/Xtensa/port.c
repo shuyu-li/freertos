@@ -207,7 +207,7 @@ BaseType_t xPortStartScheduler( void )
 	/* Setup the hardware to generate the tick. */
 	_frxt_tick_timer_init();
 
-	#if XT_USE_THREAD_SAFE_CLIB && XSHAL_CLIB == XTHAL_CLIB_NEWLIB
+	#if XT_USE_THREAD_SAFE_CLIB
 	// Init C library
 	vPortClibInit();
 	#endif
@@ -242,10 +242,10 @@ BaseType_t xPortSysTickHandler( void )
  * Used to set coprocessor area in stack. Current hack is to reuse MPU pointer for coprocessor area.
  */
 #if portUSING_MPU_WRAPPERS
-void vPortStoreTaskMPUSettings( xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint16_t usStackDepth )
+void vPortStoreTaskMPUSettings( xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint32_t ulStackDepth )
 {
 	#if XCHAL_CP_NUM > 0
-	xMPUSettings->coproc_area = (StackType_t*)((((uint32_t)(pxBottomOfStack + usStackDepth - 1)) - XT_CP_SIZE ) & ~0xf);
+	xMPUSettings->coproc_area = (StackType_t*)((((uint32_t)(pxBottomOfStack + ulStackDepth - 1)) - XT_CP_SIZE ) & ~0xf);
 
 
 	/* NOTE: we cannot initialize the coprocessor save area here because FreeRTOS is going to
